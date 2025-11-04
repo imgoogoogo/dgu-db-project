@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// 현재 경로 계산 (ESM에서 __dirname 대체용)
+// 현재 경로 계산 (ESM에서 __dirname 대체용
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
