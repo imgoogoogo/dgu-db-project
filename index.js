@@ -10,13 +10,12 @@ const __dirname = path.dirname(__filename);
 // Express 앱 생성
 const app = express();
 const PORT = 3000;
-
 // 정적 파일 제공 (public 폴더에 HTML, JS, 이미지 넣기)
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "client")));
 
 // 루트 라우트 — 기본 index.html 반환
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "client", "index.html"));
   console.log("✅ Root route accessed, index.html served.");
 });
 
