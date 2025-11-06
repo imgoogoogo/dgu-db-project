@@ -3,8 +3,8 @@ import PlayScene from "./scenes/PlayScene.js";
 
 const config = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    width: window.innerWidth,
+    height: window.innerHeight,
     scene: [MainScene, PlayScene], // 등록 순서 중요
     physics: {
         default: "arcade",
