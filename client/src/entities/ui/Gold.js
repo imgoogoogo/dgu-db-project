@@ -1,4 +1,4 @@
-export default class CountMonster extends Phaser.GameObjects.Container {
+export default class Gold extends Phaser.GameObjects.Container {
     constructor(scene, pos_x, pos_y) {
         super(scene, pos_x, pos_y);
 
@@ -6,10 +6,10 @@ export default class CountMonster extends Phaser.GameObjects.Container {
         this.scene.add.existing(this);
         this.draw();
     }
-
+    
     draw() {
         // icon
-        const icon = this.scene.add.image(0, 0, 'icon_skull').setOrigin(0, 0.5).setScale(0.8);
+        const icon = this.scene.add.image(0, 0, 'icon_gold').setOrigin(0, 0.5).setScale(0.8);
         this.add(icon);
 
         // text
@@ -19,9 +19,5 @@ export default class CountMonster extends Phaser.GameObjects.Container {
             fontStyle: 'bold'
         }).setOrigin(0, 0.5);
         this.add(this.countText);
-    }
-    
-    updateCount(count) {
-        this.countText.setText(count);
     }
 }

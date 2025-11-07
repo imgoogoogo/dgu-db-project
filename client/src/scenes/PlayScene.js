@@ -1,5 +1,8 @@
 import Player, { Direction } from "../entities/characters/Player.js";
 import ExpBar from "../entities/ui/ExpBar.js";
+import CountMonster from "../entities/ui/CountMonster.js";
+import Clock from "../entities/ui/Clock.js";
+import Gold from "../entities/ui/Gold.js";
 
 export default class PlayScene extends Phaser.Scene {
     constructor() {
@@ -30,30 +33,16 @@ export default class PlayScene extends Phaser.Scene {
         });
 
         // expBar : UI
-        this.expBar = new ExpBar(this);
+        this.expBar = new ExpBar(this, 0, 10);
 
         // clock : UI
-        this.timerText = this.add.text(cam.width / 2, 20, 'Time: 00:00', {
-            fontSize: '24px',
-            fill: '#ffffff',
-            fontStyle: 'bold'
-        }).setOrigin(0.5, 0).setScrollFactor(0); // 화면 상단 중앙에 고정
-
-        this.gameTime = 0;
-        this.time.addEvent({
-            delay: 1000, // 1000ms = 1초
-            callback: () => {
-                this.gameTime++; // 1초씩 증가
-                const minutes = Math.floor(this.gameTime / 60).toString().padStart(2, '0');
-                const seconds = (this.gameTime % 60).toString().padStart(2, '0');
-                this.timerText.setText(`Time: ${minutes}:${seconds}`);
-            },
-            callbackScope: this,
-            loop: true
-        });
+        this.clock = new Clock(this, cam.width / 2, 80);
         
-
         // countMonster : UI
+        this.countMonster = new CountMonster(this, 20, 80);
+
+        // gold : UI
+        this.gold = new Gold(this, 20, 120);
 
     }
 

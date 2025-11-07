@@ -11,6 +11,9 @@ export default class LoadScene extends Phaser.Scene {
     // 모든 에셋 경로의 공통 프리픽스 설정 (index.html이 있는 client 폴더 기준)
     this.load.setPath("assets/");
     this.load.image("background", "background.png");
+    this.load.image("icon_skull", "icons/skull.png");
+    this.load.image("icon_clock", "icons/clock.png");
+    this.load.image("icon_gold", "icons/coins.png");
     this.load.spritesheet("idle", "character/Gangsters_1/Idle.png", { 
       frameWidth: 128, 
       frameHeight: 128 
