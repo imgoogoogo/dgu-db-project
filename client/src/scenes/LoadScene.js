@@ -22,6 +22,10 @@ export default class LoadScene extends Phaser.Scene {
       frameWidth: 128, 
       frameHeight: 128 
     });
+    this.load.spritesheet("monster", "monster/Zombie_1/Walk.png", { 
+      frameWidth: 128, 
+      frameHeight: 128 
+    });
   }
 
   create() {
@@ -35,6 +39,12 @@ export default class LoadScene extends Phaser.Scene {
         key: "walk", 
         frames: this.anims.generateFrameNumbers("walk"), 
         frameRate: 10, repeat: -1,
+    });
+    this.anims.create({ 
+        key: "monster", 
+        frames: this.anims.generateFrameNumbers("monster"), 
+        frameRate: 8, 
+        repeat: -1,
     });
     
     this.scene.start("MainScene");

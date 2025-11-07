@@ -1,8 +1,10 @@
-import Player, { Direction } from "../entities/characters/Player.js";
-import ExpBar from "../entities/ui/ExpBar.js";
-import CountMonster from "../entities/ui/CountMonster.js";
-import Clock from "../entities/ui/Clock.js";
-import Gold from "../entities/ui/Gold.js";
+import Player from "../characters/Player.js";
+import Monster from "../characters/Monster.js";
+import ExpBar from "../ui/ExpBar.js";
+import CountMonster from "../ui/CountMonster.js";
+import Clock from "../ui/Clock.js";
+import Gold from "../ui/Gold.js";
+import Stage from "../ui/Stage.js";
 
 export default class PlayScene extends Phaser.Scene {
     constructor() {
@@ -23,60 +25,37 @@ export default class PlayScene extends Phaser.Scene {
         this.player = new Player(this, 200, 200, "idle");
         cam.startFollow(this.player, true, 0.1, 0.1);
 
-        // keys
-        this.keyboardInput = this.input.keyboard.createCursorKeys();
-        this.wasdKeys = this.input.keyboard.addKeys({
-            up: Phaser.Input.Keyboard.KeyCodes.W,
-            down: Phaser.Input.Keyboard.KeyCodes.S,
-            left: Phaser.Input.Keyboard.KeyCodes.A,
-            right: Phaser.Input.Keyboard.KeyCodes.D,
+        // monster
+        this.monsters = this.physics.add.group({
+            classType: Monster,
+            runChildUpdate: true // ⭐️ 이 옵션이 핵심입니다.
         });
+
+        this.monsters.get(400, 300, "monster"); // 'monster'는 LoadScene에서 로드한 텍스처 키
 
         // expBar : UI
         this.expBar = new ExpBar(this, 0, 10);
 
         // clock : UI
-        this.clock = new Clock(this, cam.width / 2, 80);
+        this.clock = new Clock(this, 20, 80);
         
         // countMonster : UI
-        this.countMonster = new CountMonster(this, 20, 80);
+        this.countMonster = new CountMonster(this, cam.width / 2 + 400, 80);
 
         // gold : UI
         this.gold = new Gold(this, 20, 120);
 
+        // stage : UI
+        this.stage = new Stage(this, cam.width / 2, 80);
+
     }
 
     update() {
-        // player movement
-        this.movePlayerManager();
+        // ⭐️ 플레이어의 update 함수를 호출하여 스스로 움직이게 합니다.
+        this.player.update();
 
         // 카메라의 스크롤 값에 따라 배경 타일의 텍스처 위치를 업데이트
         this.backgroundTile.tilePositionX = this.cameras.main.scrollX;
         this.backgroundTile.tilePositionY = this.cameras.main.scrollY;
-    }
-
-    movePlayerManager() {
-        const isMoving = 
-            this.keyboardInput.left.isDown || this.wasdKeys.left.isDown ||
-            this.keyboardInput.right.isDown || this.wasdKeys.right.isDown ||
-            this.keyboardInput.up.isDown || this.wasdKeys.up.isDown ||
-            this.keyboardInput.down.isDown || this.wasdKeys.down.isDown;
-
-        if (isMoving) {
-            // 좌우 이동
-            if (this.keyboardInput.left.isDown || this.wasdKeys.left.isDown) {
-                this.player.move(Direction.Left);
-            } else if (this.keyboardInput.right.isDown || this.wasdKeys.right.isDown) {
-                this.player.move(Direction.Right);
-            }
-            // 상하 이동
-            if (this.keyboardInput.up.isDown || this.wasdKeys.up.isDown) {
-                this.player.move(Direction.Up);
-            } else if (this.keyboardInput.down.isDown || this.wasdKeys.down.isDown) {
-                this.player.move(Direction.Down);
-            }
-        } else {
-            this.player.stop();
-        }
     }
 }
