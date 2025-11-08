@@ -34,7 +34,7 @@ export default class PlayScene extends Phaser.Scene {
 
         // manager (game rules)
         this.monsterManager = new MonsterManager(this); // 몬스터 스폰 관리
-        this.monsterManager.startSpawning(1000); // 1초 간격으로 몬스터 생성 시작
+        this.monsterManager.startEvent(1000); // 1초 간격으로 몬스터 생성 시작
         this.physics.add.collider(                      // 플레이어 몬스터 충돌
             this.player, 
             this.monsters,
@@ -44,7 +44,7 @@ export default class PlayScene extends Phaser.Scene {
         );
 
         this.bulletManager = new BulletManager(this);
-        this.bulletManager.startFiring(1000); // 0.5초 간격으로 총알 발사 시작
+        this.bulletManager.startEvent(1000); // 0.5초 간격으로 총알 발사 시작
         this.physics.add.collider(                      // 총알 몬스터 충돌
             this.bullets,
             this.monsters,
@@ -66,8 +66,8 @@ export default class PlayScene extends Phaser.Scene {
 
     onBulletHitMonster(bullet, monster) {
         console.log("총알이 몬스터와 충돌!");
-        this.bulletManager.deleteBullet(bullet);
-        this.monsterManager.deleteMonster(monster);
+        this.bulletManager.removeBullet(bullet);
+        this.monsterManager.removeMonster(monster);
     }
 
 }

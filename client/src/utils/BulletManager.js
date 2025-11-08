@@ -1,14 +1,9 @@
 import Bullet from "../effects/bullet.js";
 
 export default class BulletManager {
-    /**
-     * @param {Phaser.Scene} scene 총알을 관리할 씬
-     */
     constructor(scene) {
         this.scene = scene;
 
-        // 총알 그룹을 생성하고 씬에 등록합니다.
-        // PlayScene에서도 this.bullets로 접근할 수 있습니다.
         this.scene.bullets = this.scene.physics.add.group({
             classType: Bullet,
             runChildUpdate: true, // 그룹의 모든 자식의 update/preUpdate를 실행
@@ -16,12 +11,8 @@ export default class BulletManager {
         });
     }
 
-    /**
-     * 설정된 시간 간격으로 총알 발사를 시작합니다.
-     * @param {number} delay 총알 발사 간격 (밀리초)
-     */
-    startFiring(delay = 1000) {
-        this.scene.time.addEvent({
+    startEvent(delay = 1000) {
+        this.fireEvent = this.scene.time.addEvent({
             delay: delay,
             loop: true,
             callback: () => {
@@ -30,19 +21,30 @@ export default class BulletManager {
         });
     }
 
-    fireBullet() {
-        const player = this.scene.player;
-        
-        // 그룹에서 비활성화된 총알을 가져오거나, 없으면 새로 생성합니다.
-        const bullet = this.scene.bullets.get(player.x, player.y, 'bullet');
-
-        // bullet.fire() 메소드를 호출하여 발사를 시작합니다.
-        if (bullet) {
-            bullet.fire(player);
+    stopEvent() {
+        if (this.fireEvent) {
+            this.fireEvent.remove();
+            this.fireEvent = null; // 참조를 제거합니다.
         }
     }
 
-    deleteBullet(bullet) {
+    fireBullet() {
+    const player = this.scene.player;
+    const bullet = this.scene.bullets.get(player.x, player.y, 'bullet'); // 텍스처는 그룹에 설정되어 있다면 생략 가능
+
+    if (bullet) {
+        bullet.setActive(true);
+        bullet.setVisible(true);
+        bullet.body.enable = true;
+        bullet.fire();
+    }
+}
+
+    removeBullet(bullet) {
+        if (bullet.lifespanTimer) {
+            bullet.lifespanTimer.remove();
+            bullet.lifespanTimer = null; // 참조를 제거하여 메모리 누수를 방지합니다.
+        }
         bullet.setActive(false).setVisible(false).body.stop();
     }
 }

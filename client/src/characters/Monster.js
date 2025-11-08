@@ -15,10 +15,10 @@ export default class Monster extends Phaser.Physics.Arcade.Sprite {
 
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
-        this.handleMovement();
+        this.move();
     }
 
-    handleMovement() {
+    move() {
         if (!this.player || !this.player.active) {
             this.setVelocity(0, 0);
             return;

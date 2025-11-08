@@ -9,7 +9,7 @@ export const PHASER_CONFIG = {
     scene: [LoadScene, MainScene, PlayScene], // 등록 순서 중요
     physics: {
         default: "arcade",
-        arcade: { debug: true }
+        arcade: { debug: false }
     }
 };
 

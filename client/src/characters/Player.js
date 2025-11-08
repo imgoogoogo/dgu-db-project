@@ -26,10 +26,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     // Player의 update 메소드를 preUpdate로 변경합니다.
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
-        this.handleMovement();
+        this.move();
     }
 
-    handleMovement() {
+    move() {
         const speed = Player.PLAYER_SPEED;
         let velocityX = 0;
         let velocityY = 0;
