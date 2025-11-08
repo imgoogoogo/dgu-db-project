@@ -7,11 +7,14 @@ export default class Monster extends Phaser.Physics.Arcade.Sprite {
         scene.physics.add.existing(this);
 
         this.anims.play("monster", true);
+        this.body.setSize(40, 70);
+        this.body.setOffset(44, 58);
 
         this.player = scene.player; // 씬의 플레이어 객체를 참조
     }
 
-    update() {
+    preUpdate(time, delta) {
+        super.preUpdate(time, delta);
         this.handleMovement();
     }
 

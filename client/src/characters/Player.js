@@ -8,6 +8,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         scene.physics.add.existing(this);
 
         this.anims.play("idle", true);
+        this.body.setSize(40, 70);
+        this.body.setOffset(44, 58);
+
+        scene.cameras.main.startFollow(this, true, 0.1, 0.1);
 
         // keyboard input 설정
         this.keyboardInput = this.scene.input.keyboard.createCursorKeys();
@@ -19,8 +23,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         });
     }
 
-    // Player의 update 메소드는 그대로 유지합니다.
-    update() {
+    // Player의 update 메소드를 preUpdate로 변경합니다.
+    preUpdate(time, delta) {
+        super.preUpdate(time, delta);
         this.handleMovement();
     }
 
@@ -28,19 +33,26 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         const speed = Player.PLAYER_SPEED;
         let velocityX = 0;
         let velocityY = 0;
+        let isMoving = false;
 
         // 수평 이동 입력
         if (this.keyboardInput.left.isDown || this.wasdKeys.left.isDown) {
             velocityX = -speed;
+            this.flipX = true; // 즉시 방향 전환
+            isMoving = true;
         } else if (this.keyboardInput.right.isDown || this.wasdKeys.right.isDown) {
             velocityX = speed;
+            this.flipX = false; // 즉시 방향 전환
+            isMoving = true;
         }
 
         // 수직 이동 입력
         if (this.keyboardInput.up.isDown || this.wasdKeys.up.isDown) {
             velocityY = -speed;
+            isMoving = true;
         } else if (this.keyboardInput.down.isDown || this.wasdKeys.down.isDown) {
             velocityY = speed;
+            isMoving = true;
         }
 
         // 속도 설정
@@ -51,11 +63,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             this.body.velocity.normalize().scale(speed);
         }
 
-        // 속도에 따라 애니메이션 및 방향 전환
-        if (this.body.velocity.length() > 0) {
+        // ⭐️ 키 입력 여부를 기준으로 애니메이션을 결정합니다.
+        if (isMoving) {
             this.anims.play("walk", true);
-            if (this.body.velocity.x < 0)      this.flipX = true; // 왼쪽으로 이동 시
-            else if (this.body.velocity.x > 0) this.flipX = false; // 오른쪽으로 이동 시
         } else {
             this.anims.play("idle", true);
         }

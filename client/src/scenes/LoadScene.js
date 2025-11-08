@@ -14,6 +14,7 @@ export default class LoadScene extends Phaser.Scene {
     this.load.image("icon_skull", "icons/skull.png");
     this.load.image("icon_clock", "icons/clock.png");
     this.load.image("icon_gold", "icons/coins.png");
+    this.load.image("bullet", "beam.png");
     this.load.spritesheet("idle", "character/Gangsters_1/Idle.png", { 
       frameWidth: 128, 
       frameHeight: 128 

@@ -1,16 +1,4 @@
-import LoadScene from "./scenes/LoadScene.js";
-import MainScene from "./scenes/MainScene.js";
-import PlayScene from "./scenes/PlayScene.js";
+import { PHASER_CONFIG } from "./config/GameConfig.js";
 
-const config = {
-    type: Phaser.AUTO,
-    width: window.innerWidth,
-    height: window.innerHeight,
-    scene: [LoadScene, MainScene, PlayScene], // 등록 순서 중요
-    physics: {
-        default: "arcade",
-        arcade: { debug: true }
-    }
-};
-
-new Phaser.Game(config);
+// Phaser 시작 부분
+new Phaser.Game(PHASER_CONFIG);
