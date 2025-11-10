@@ -1,18 +1,31 @@
-// server/config/db.js
-// ──────────────────────────────────────────────────────────────
-// MariaDB 연결 풀 생성 파일 (mysql2/promise 사용)
-// - 모든 라우터에서 이 pool을 import 해서 사용
-// - 쿼리는 반드시 "?" 바인딩(Prepared Statement)으로 보안/성능 확보
-// ──────────────────────────────────────────────────────────────
+// ✅ db.js — MariaDB 연결 설정
+// -------------------------------------------
+// 이 파일은 Express 서버에서 MariaDB에 연결할 때 사용됩니다.
+// mysql2/promise 모듈을 사용해서 비동기/await 방식으로 쿼리를 실행할 수 있습니다.
+// -------------------------------------------
+
 import mysql from "mysql2/promise";
 
+// ✅ 데이터베이스 연결 풀(Pool) 생성
+// export const pool = mysql.createPool({...});
 const pool = mysql.createPool({
-  host: "localhost",
+  host: "127.0.0.1",
   user: "root",
-  password: "1234",   // ← 실제 비밀번호로 교체하세요. 나중엔 .env로 분리 추천
-  database: "rpg_game",  // ← 네가 만든 DB명
-  connectionLimit: 10,   // 동시 커넥션 제한 (필요 시 조정)
-  // timezone: "Z",      // 필요하면 타임존 지정 (예: UTC)
+  password: "1234",
+  database: "rpg_game",
+  port: 3307,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
-export default pool;
+// 연결 테스트
+try {
+  const connection = await pool.getConnection();
+  console.log("✅ MariaDB 연결 성공 (rpg_game)");
+  connection.release();
+} catch (err) {
+  console.error("❌ MariaDB 연결 실패:", err.message);
+}
+
+export default pool;  // ✅ 기본(default) 내보내기로 변경
