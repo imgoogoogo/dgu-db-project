@@ -93,6 +93,6 @@ export default class GameManager {
   // 몬스터 카운트 UI를 업데이트하는 헬퍼 메소드
   updateMonsterCountUI() {
     const remaining = this.monstersToKill - this.monstersKilled;
-    this.scene.countMonster.updateCount(remaining);
+    this.scene.aliveMonster.updateCount(remaining);
   }
 }
