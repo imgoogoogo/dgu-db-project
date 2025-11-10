@@ -1,3 +1,5 @@
+import InventoryPopUp from "./popup/InventoryPopUp.js";
+
 export default class MainScene extends Phaser.Scene {
     constructor() {
         super("MainScene");
@@ -45,18 +47,24 @@ export default class MainScene extends Phaser.Scene {
         playBtn.on("pointerdown", () => this.scene.start("PlayScene"));
 
         const rankBtn = this.add.text(centerX, baseY + spacing * 1, labels[1], style).setOrigin(0.5).setInteractive();
-        rankBtn.on("pointerdown", () => this.scene.start("RankScene"));
+        rankBtn.on("pointerdown", () => {
+            // TODO: 랭킹 기능 구현
+            console.log("Ranking button clicked (TODO)");
+        });
 
         const auctionBtn = this.add.text(centerX, baseY + spacing * 2, labels[2], style).setOrigin(0.5).setInteractive();
         auctionBtn.on("pointerdown", () => {
-            // 나중에 AuctionScene 만들면 연결
             console.log("Auction button clicked (TODO)");
         });
 
+        // ⭐️ "INVENTORY" 버튼에 팝업 기능을 연결합니다.
         const inventoryBtn = this.add.text(centerX, baseY + spacing * 3, labels[3], style).setOrigin(0.5).setInteractive();
         inventoryBtn.on("pointerdown", () => {
-            // 나중에 InventoryScene 만들면 연결
-            console.log("Inventory button clicked (TODO)");
+            // ⭐️ 정의되지 않은 width, height 대신 sw, sh를 사용합니다.
+            if (!this.inventoryPopup || !this.inventoryPopup.scene) {
+                this.inventoryPopup = new InventoryPopUp(this, sw / 2, sh / 2);
+            }
+            this.inventoryPopup.setVisible(true);
         });
 
         const settingsBtn = this.add.text(centerX, baseY + spacing * 4, labels[4], style).setOrigin(0.5).setInteractive();

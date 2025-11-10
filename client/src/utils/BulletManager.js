@@ -45,6 +45,8 @@ export default class BulletManager {
             bullet.lifespanTimer.remove();
             bullet.lifespanTimer = null; // 참조를 제거하여 메모리 누수를 방지합니다.
         }
-        bullet.setActive(false).setVisible(false).body.stop();
+        bullet.setActive(false)
+        bullet.setVisible(false)
+        bullet.body.enable = false;
     }
 }

@@ -62,6 +62,8 @@ export default class MonsterManager {
     }
 
     removeMonster(monster) {
-        monster.setActive(false).setVisible(false).body.stop();
+        monster.setActive(false)
+        monster.setVisible(false)
+        monster.body.enadble = false;
     }
 }
