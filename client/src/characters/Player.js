@@ -1,4 +1,5 @@
 import DataManager from "../utils/DataManager.js";
+import HpBar from "../ui/HpBar.js";
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture) {
@@ -23,6 +24,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       right: Phaser.Input.Keyboard.KeyCodes.D,
     });
 
+    // HpBar 생성
+    this.hpBar = new HpBar(scene, this.x, this.y - this.height / 2, 40, 5);
+
     // player 속성 설정
     this.hp = DataManager.playerState.hp;
     this.speed = DataManager.playerState.speed;
@@ -31,6 +35,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   preUpdate(time, delta) {
     super.preUpdate(time, delta);
     this.move();
+    this.hpBar.updatePosition(this.x, this.y - 20);
   }
 
   move() {

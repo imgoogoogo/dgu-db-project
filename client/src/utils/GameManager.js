@@ -1,6 +1,10 @@
 export default class GameManager {
   static CURRENT_STAGE; // 현재 스테이지
 
+  // hp
+  static PLAYER_MAX_HP = 100; // 플레이어 최대 체력
+  static PLAYER_CURRENT_HP = 100; // 플레이어 현재 체력
+
   // monster
   static MONSTER_PER_STAGE; // 스테이지 당 몬스터 수
   static MONSTER_KILLED_COUNT; // 처치한 몬스터 수
@@ -47,11 +51,21 @@ export default class GameManager {
   // 플레이어가 몬스터와 충돌했을 때 호출될 메소드
   onMonsterHitPlayer(player, monster) {
     console.log("플레이어가 몬스터와 충돌!");
+
+    // 플레이어 체력 감소
+    GameManager.PLAYER_CURRENT_HP -= 0.1;
+    this.updateAllUI();
+    if (GameManager.PLAYER_CURRENT_HP < 0) {
+      // 게임 스탑
+      // this.scene.scene.pause("PlayScene");
+      this.scene.scene.start("MainScene");
+      console.log("게임 오버!");
+      // 게임 결과 화면 표시
+    }
   }
 
   // 총알이 몬스터와 충돌했을 때 호출될 메소드
   onBulletHitMonster(bullet, monster) {
-    console.log("총알이 몬스터와 충돌!");
     // 충돌한 총알과 몬스터를 비활성화합니다.
     this.scene.bulletManager.removeBullet(bullet);
     this.scene.monsterManager.removeMonster(monster);
@@ -106,5 +120,6 @@ export default class GameManager {
       GameManager.EXP_NEEDED_LEVEL,
       GameManager.PLAYER_LEVEL
     );
+    this.scene.player.hpBar.setValue(GameManager.PLAYER_CURRENT_HP);
   }
 }
