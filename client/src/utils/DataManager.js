@@ -1,67 +1,68 @@
 class DataManager {
-    constructor() {
-        // 데이터가 로드되었는지 확인하는 플래그
-        this.isDataLoaded = false;
+  constructor() {
+    // ⭐️ 동적 데이터 (플레이어의 현재 상태)
+    this.playerState = {
+      name: "Player1",
+      hp: 100,
+      atk: 20,
+      def: 0,
+      speed: 200,
+      gold: 0,
+      max_stage: 0,
+      last_played: null,
+    };
+  }
 
-        // 데이터를 저장할 객체들
-        this.playerData = null;
-        this.inventoryData = null;
-        this.itemsData = null;
-        this.monsterData = null;
-        this.auctionData = null; // 'autionData' -> 'auctionData' 오타 수정
+  // --- 데이터 변경 메소드 ---
+  addGold(amount) {
+    this.playerState.gold += amount;
+    // TODO: UI 업데이트 이벤트 발생
+  }
+
+  levelUp() {
+    this.playerState.level++;
+    this.playerState.exp = 0; // 또는 초과분만 남김
+    this.playerState.maxExp *= 1.5; // 예시: 다음 레벨업에 필요한 경험치 증가
+    // TODO: 레벨업 이벤트 발생
+  }
+
+  // --- DB 연동 메소드 (미래의 창구) ---
+
+  /**
+   * 현재 게임 상태를 서버에 저장합니다.
+   */
+  async saveData() {
+    try {
+      console.log("서버에 데이터를 저장합니다...", this.playerState);
+      // const response = await fetch('/api/save', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(this.playerState)
+      // });
+      // const result = await response.json();
+      // console.log(result.message);
+    } catch (error) {
+      console.error("데이터 저장 실패:", error);
     }
+  }
 
-    /**
-     * 서버에서 모든 게임 데이터를 비동기적으로 불러옵니다.
-     * async/await를 사용하여 코드를 동기식처럼 보이게 만듭니다.
-     */
-    async loadDataFromServer() {
-        // 이미 데이터가 로드되었다면 다시 로드하지 않습니다.
-        if (this.isDataLoaded) {
-            return;
-        }
-
-        try {
-            // Promise.all을 사용하여 모든 데이터 요청을 병렬로 처리합니다.
-            const responses = await Promise.all([
-                fetch('/api/player'),    // 서버의 실제 API 엔드포인트로 수정해야 합니다.
-                fetch('/api/inventory'),
-                fetch('/api/items'),
-                fetch('/api/monsters'),
-                fetch('/api/auction')
-            ]);
-
-            // 모든 응답이 정상인지 확인합니다.
-            for (const res of responses) {
-                if (!res.ok) {
-                    throw new Error(`서버 응답 오류: ${res.status}`);
-                }
-            }
-
-            // 각 응답을 JSON으로 파싱합니다.
-            const [player, inventory, items, monsters, auction] = await Promise.all(
-                responses.map(res => res.json())
-            );
-
-            // 파싱된 데이터를 클래스 속성에 저장합니다.
-            this.playerData = player;
-            this.inventoryData = inventory;
-            this.itemsData = items;
-            this.monsterData = monsters;
-            this.auctionData = auction;
-
-            // 로딩 완료 플래그를 설정합니다.
-            this.isDataLoaded = true;
-            console.log("모든 서버 데이터 로딩 완료!");
-
-        } catch (error) {
-            console.error("데이터 로딩 실패:", error);
-            // 여기에 로딩 실패 시의 로직을 추가할 수 있습니다. (예: 에러 씬으로 전환)
-            this.isDataLoaded = false;
-        }
+  /**
+   * 서버에서 게임 상태를 불러옵니다.
+   */
+  async loadData() {
+    try {
+      console.log("서버에서 데이터를 불러옵니다...");
+      // const response = await fetch('/api/load');
+      // const loadedData = await response.json();
+      // this.playerState = loadedData;
+      // console.log("데이터 로드 완료:", this.playerState);
+      // TODO: 로드된 데이터로 게임 전체를 업데이트하는 이벤트 발생
+    } catch (error) {
+      console.error("데이터 로드 실패:", error);
     }
+  }
 }
 
-// DataManager를 싱글톤(Singleton)으로 만들어 게임 전체에서 하나의 인스턴스만 사용하도록 합니다.
+// ⭐️ 싱글톤 패턴: 게임 전체에서 단 하나의 DataManager 인스턴스만 사용하도록 보장
 const instance = new DataManager();
 export default instance;

@@ -1,98 +1,110 @@
 export default class GameManager {
+  static CURRENT_STAGE; // 현재 스테이지
+
+  // monster
+  static MONSTER_PER_STAGE; // 스테이지 당 몬스터 수
+  static MONSTER_KILLED_COUNT; // 처치한 몬스터 수
+
+  // exp
+  static PLAYER_LEVEL; // 플레이어 레벨
+  static CURRENT_EXP = 0; // 현재 경험치
+  static EXP_NEEDED_LEVEL = 100; // 레벨업에 필요한 경험치
+
+  // clock
+  static CLOCK; // 게임 내 시간
+
+  // gold
+  static GOLD; // 플레이어가 가진 골드
+
   constructor(scene) {
     this.scene = scene;
-    this.stage = 1;
-    this.monstersToKill = 0;
-    this.monstersKilled = 0;
 
-    // 플레이어 몬스터 충돌 처리
-    this.scene.physics.add.overlap(
-      this.scene.player,
-      this.scene.monsters,
-      this.onMonsterHitPlayer,
-      null,
-      this
-    );
-
-    // 총알 몬스터 충돌 처리
-    this.scene.physics.add.overlap(
-      this.scene.bullets,
-      this.scene.monsters,
-      this.onBulletHitMonster,
-      null,
-      this
-    );
+    // 초기 값 설정
+    GameManager.PLAYER_LEVEL = 1;
+    GameManager.CURRENT_EXP = 0;
+    GameManager.EXP_NEEDED_LEVEL = 100;
+    GameManager.CLOCK = 0;
+    GameManager.GOLD = 0;
 
     // 첫 스테이지를 시작합니다.
-    this.setupStage(this.stage);
-  }
-
-  onMonsterHitPlayer(player, monster) {
-    console.log("플레이어가 몬스터와 충돌!");
-  }
-
-  onBulletHitMonster(bullet, monster) {
-    console.log("총알이 몬스터와 충돌!");
-    this.scene.bulletManager.removeBullet(bullet);
-    this.scene.monsterManager.removeMonster(monster);
-    this.onMonsterDefeated();
+    this.setupStage(1);
   }
 
   // 스테이지를 설정하는 메소드
   setupStage(stage) {
-    this.stage = stage;
-    this.monstersKilled = 0;
-
-    // 스테이지별로 처치할 몬스터 수와 스폰 속도를 설정합니다.
-    switch (stage) {
-      case 1:
-        this.monstersToKill = 10; // 예시: 1스테이지는 10마리
-        this.scene.monsterManager.startEvent(1000); // 1초 간격
-        break;
-      case 2:
-        this.monstersToKill = 20; // 예시: 2스테이지는 20마리
-        this.scene.monsterManager.startEvent(800); // 0.8초 간격으로 더 빠르게
-        break;
-      case 3:
-        this.monstersToKill = 30;
-        this.scene.monsterManager.startEvent(500); // 0.5초 간격으로 매우 빠르게
-        break;
-      default:
-        // 마지막 스테이지 이후의 처리 (예: 무한 모드)
-        this.monstersToKill = 9999;
-        this.scene.monsterManager.startEvent(300);
-        break;
-    }
-
-    // UI를 업데이트합니다.
-    //this.scene.stage.updateText(this.stage);
-    this.updateMonsterCountUI();
-  }
-
-  // 몬스터가 처치될 때마다 호출될 메소드
-  onMonsterDefeated() {
-    this.monstersKilled++;
-    this.updateMonsterCountUI();
-
-    // 목표 처치 수를 달성했는지 확인합니다.
-    if (this.monstersKilled >= this.monstersToKill) {
-      this.nextStage();
-    }
-  }
-
-  // 다음 스테이지로 진행하는 메소드
-  nextStage() {
-    // 현재 몬스터 스폰 이벤트를 중지합니다.
     this.scene.monsterManager.stopEvent();
 
-    // TODO: 스테이지 클리어 보상 (예: 플레이어 레벨업, 아이템 선택 등)
-    console.log(`스테이지 ${this.stage} 클리어!`);
-    this.setupStage(this.stage + 1);
+    GameManager.CURRENT_STAGE = stage;
+    GameManager.MONSTER_PER_STAGE = stage * 10; // 예: 2스테이지는 20마리
+    GameManager.MONSTER_KILLED_COUNT = 0; // ⭐️ 잡은 몬스터 수 초기화
+
+    this.scene.monsterManager.startEvent(1000); // 1초 간격
+
+    // UI 업데이트
+    this.updateAllUI();
   }
 
-  // 몬스터 카운트 UI를 업데이트하는 헬퍼 메소드
-  updateMonsterCountUI() {
-    const remaining = this.monstersToKill - this.monstersKilled;
-    this.scene.aliveMonster.updateCount(remaining);
+  // 플레이어가 몬스터와 충돌했을 때 호출될 메소드
+  onMonsterHitPlayer(player, monster) {
+    console.log("플레이어가 몬스터와 충돌!");
+  }
+
+  // 총알이 몬스터와 충돌했을 때 호출될 메소드
+  onBulletHitMonster(bullet, monster) {
+    console.log("총알이 몬스터와 충돌!");
+    // 충돌한 총알과 몬스터를 비활성화합니다.
+    this.scene.bulletManager.removeBullet(bullet);
+    this.scene.monsterManager.removeMonster(monster);
+
+    // ⭐️ 몬스터가 죽은 위치에 아이템 드롭을 요청합니다.
+    this.scene.itemManager.createItem(monster.x, monster.y);
+
+    // 몬스터 처치 카운트를 증가시킵니다.
+    GameManager.MONSTER_KILLED_COUNT++;
+    this.updateAllUI();
+
+    // 목표 처치 수를 달성했는지 확인합니다.
+    if (GameManager.MONSTER_KILLED_COUNT >= GameManager.MONSTER_PER_STAGE)
+      this.setupStage(GameManager.CURRENT_STAGE + 1);
+  }
+
+  // 플레이어가 아이템을 획득했을 때 호출될 메소드
+  onPlayerGetItem(player, item) {
+    let itemType = this.scene.itemManager.onPlayerCollect(player, item);
+    this.scene.itemManager.removeItem(item);
+
+    console.log(`획득한 아이템 종류: ${itemType}`);
+    // 경험치 바에 경험치를 추가합니다.
+    if (itemType === "diamond") GameManager.CURRENT_EXP += 10;
+    else if (itemType === "coin") GameManager.GOLD += 5;
+    this.updateAllUI();
+
+    // 레벨업 체크
+    if (GameManager.CURRENT_EXP >= GameManager.EXP_NEEDED_LEVEL) {
+      this.onPlayerLevelUp();
+    }
+  }
+
+  onPlayerLevelUp() {
+    GameManager.PLAYER_LEVEL++;
+    GameManager.CURRENT_EXP -= GameManager.EXP_NEEDED_LEVEL;
+    console.log(`레벨업! 현재 레벨: ${GameManager.PLAYER_LEVEL}`);
+
+    // 레벨업 후 경험치 바를 0으로 초기화
+    GameManager.CURRENT_EXP = 0;
+    this.updateAllUI();
+  }
+
+  updateAllUI() {
+    this.scene.stage.updateUI(GameManager.CURRENT_STAGE);
+    this.scene.remainMonster.updateUI(
+      GameManager.MONSTER_PER_STAGE - GameManager.MONSTER_KILLED_COUNT
+    );
+    this.scene.gold.updateUI(GameManager.GOLD);
+    this.scene.expBar.updateUI(
+      GameManager.CURRENT_EXP,
+      GameManager.EXP_NEEDED_LEVEL,
+      GameManager.PLAYER_LEVEL
+    );
   }
 }

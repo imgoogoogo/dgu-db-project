@@ -1,4 +1,4 @@
-export default class AliveMonster extends Phaser.GameObjects.Container {
+export default class RemainMonster extends Phaser.GameObjects.Container {
   constructor(scene, pos_x, pos_y) {
     super(scene, pos_x, pos_y);
 
@@ -26,7 +26,7 @@ export default class AliveMonster extends Phaser.GameObjects.Container {
     this.add(this.countText);
   }
 
-  updateCount(count) {
+  updateUI(count) {
     this.countText.setText(count);
   }
 }

@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Phaser Example</title>
-</head>
-<body>
-
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.js"></script>
-  <script type="module" src="./src/game.js"></script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Phaser Example</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* ⭐️ 스크롤바를 숨깁니다. */
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.js"></script>
+    <script type="module" src="./src/game.js"></script>
+  </body>
 </html>
