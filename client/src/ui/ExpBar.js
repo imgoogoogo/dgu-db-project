@@ -4,7 +4,7 @@ export default class ExpBar extends Phaser.GameObjects.Graphics {
 
     // 경험치 바의 크기 및 위치 설정
     this.barWidth = scene.cameras.main.width;
-    this.barHeight = 15;
+    this.barHeight = 25;
     this.x = x;
     this.y = y;
 

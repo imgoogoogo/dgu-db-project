@@ -13,7 +13,6 @@ export default class LoadScene extends Phaser.Scene {
     this.load.image("icon_skull", "icons/skull.png");
     this.load.image("icon_clock", "icons/clock.png");
     this.load.image("icon_gold", "icons/coins.png");
-    this.load.image("coin", "icons/coins.png");
 
     this.load.image("bullet", "beam.png");
     this.load.spritesheet("idle", "character/Gangsters_1/Idle.png", {
@@ -27,6 +26,14 @@ export default class LoadScene extends Phaser.Scene {
     this.load.spritesheet("monster", "monster/Zombie_1/Walk.png", {
       frameWidth: 128,
       frameHeight: 128,
+    });
+    this.load.spritesheet("coin", "Coin_Gems/MonedaD.png", {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
+    this.load.spritesheet("diamond", "Coin_Gems/spr_coin_azu.png", {
+      frameWidth: 16,
+      frameHeight: 16,
     });
   }
 
@@ -46,6 +53,18 @@ export default class LoadScene extends Phaser.Scene {
     this.anims.create({
       key: "monster",
       frames: this.anims.generateFrameNumbers("monster"),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "coin",
+      frames: this.anims.generateFrameNumbers("coin"),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "diamond",
+      frames: this.anims.generateFrameNumbers("diamond"),
       frameRate: 8,
       repeat: -1,
     });

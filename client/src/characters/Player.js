@@ -28,8 +28,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.hpBar = new HpBar(scene, this.x, this.y - this.height / 2, 40, 5);
 
     // player 속성 설정
-    this.hp = DataManager.playerState.hp;
-    this.speed = DataManager.playerState.speed;
+    this.hp = 100;
+    this.speed = 200;
   }
 
   preUpdate(time, delta) {

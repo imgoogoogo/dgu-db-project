@@ -25,7 +25,7 @@ export default class PlayScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     // --- UI 생성 ---
-    this.expBar = new ExpBar(this, 0, 10);
+    this.expBar = new ExpBar(this, 0, 0);
     this.clock = new Clock(this, 20, 80);
     this.remainMonster = new remainMonster(this, cam.width / 2 + 400, 80);
     this.gold = new Gold(this, 20, 120);

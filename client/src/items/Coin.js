@@ -1,4 +1,4 @@
-export default class Coin extends Phaser.Physics.Arcade.Image {
+export default class Coin extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
     super(scene, x, y, "coin"); // 'coin' 텍스처 키
     this.value = 10; // 코인의 가치
@@ -10,5 +10,6 @@ export default class Coin extends Phaser.Physics.Arcade.Image {
     this.setVisible(true);
     this.body.enable = true;
     // TODO: 생성 시 통통 튀는 애니메이션 추가 가능
+    this.anims.play("coin", true);
   }
 }

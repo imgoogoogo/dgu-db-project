@@ -73,6 +73,14 @@ export default class RankingPopUp extends Phaser.GameObjects.Container {
       { rank: 3, name: "Player3", score: 1000 },
       { rank: 4, name: "Player4", score: 800 },
       { rank: 5, name: "Player5", score: 600 },
+      { rank: 6, name: "Player6", score: 400 },
+      { rank: 7, name: "Player7", score: 200 },
+      { rank: 8, name: "Player8", score: 100 },
+      { rank: 9, name: "Player9", score: 50 },
+      { rank: 10, name: "Player10", score: 10 },
+      { rank: 11, name: "Player11", score: 5 },
+      { rank: 12, name: "Player12", score: 2 },
+      { rank: 13, name: "Player13", score: 1 },
     ];
 
     rankings.forEach((entry, index) => {
