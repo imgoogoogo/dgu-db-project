@@ -4,51 +4,71 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
 
-// ────────────────────────────────
-// 1. 현재 경로 계산 (ESM에서 __dirname 대체)
+// ESM용 __dirname 생성
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ────────────────────────────────
-// 2. Express 앱 생성
+// Express 서버 생성
 const app = express();
 const PORT = 3000;
 
-// ────────────────────────────────
-// 3. 미들웨어 설정
+// ----------------------------------------------
+// 📌 공통 미들웨어
+// ----------------------------------------------
 app.use(cors());
-app.use(express.json()); // JSON 요청 바디 파싱
-app.use(express.static(path.join(__dirname, "client"))); // 정적 파일 제공
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ────────────────────────────────
-// 4. API 라우터 불러오기 (분리형 구조)
-import playerRoutes from "./server/api/player.js";
-import rankRoutes from "./server/api/rank.js";
-import inventoryRoutes from "./server/api/inventory.js";
-import auctionRoutes from "./server/api/auction.js";
+// 📌 정적 파일 (client 폴더)
+app.use(express.static(path.join(__dirname, "client")));
 
-// ────────────────────────────────
-// 5. 라우터 등록
-app.use("/api/player", playerRoutes);
-app.use("/api/rank", rankRoutes);
-app.use("/api/inventory", inventoryRoutes);
-app.use("/api/auction", auctionRoutes);
 
-// ────────────────────────────────
-// 6. 루트 라우트 — 기본 index.html 반환
+// ----------------------------------------------
+// 📌 라우터 불러오기
+// ----------------------------------------------
+import authRoutes from "./server/routes/authRoutes.js";
+import playerRoutes from "./server/routes/playerRoutes.js";
+import inventoryRoutes from "./server/routes/inventoryRoutes.js";
+import rankRoutes from "./server/routes/rankRoutes.js";
+import auctionRoutes from "./server/routes/auctionRoutes.js";
+import gameRoutes from "./server/routes/gameRoutes.js";
+
+
+// ----------------------------------------------
+// 📌 라우터 등록
+// ----------------------------------------------
+app.use("/api/auth", authRoutes);          // 로그인/로그아웃
+app.use("/api/player", playerRoutes);      // 캐릭터 등록/스탯 강화
+app.use("/api/inventory", inventoryRoutes);// 인벤토리 조회
+app.use("/api/ranking", rankRoutes);       // 랭킹 조회
+app.use("/api/auction", auctionRoutes);    // 경매 (판매/구매/취소)
+app.use("/api/game", gameRoutes);          // 게임 종료 보상 저장
+
+
+// ----------------------------------------------
+// 📌 기본 라우팅 (client/index.html 반환)
+// ----------------------------------------------
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "client", "index.html"));
-  console.log("✅ Root route accessed, index.html served.");
 });
 
-// ────────────────────────────────
-// 7. 테스트용 기본 API
+// ----------------------------------------------
+// 📌 서버 상태 체크용 API
+// ----------------------------------------------
 app.get("/api/hello", (req, res) => {
   res.json({ message: "서버 정상 작동 중 ✅" });
 });
 
-// ────────────────────────────────
-// 8. 서버 실행
+// ----------------------------------------------
+// 📌 404 처리 (선택)
+// ----------------------------------------------
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "요청한 API를 찾을 수 없습니다." });
+});
+
+// ----------------------------------------------
+// 📌 서버 실행
+// ----------------------------------------------
 app.listen(PORT, () => {
-  console.log(`🧩 ZombieSurvival server running on: http://localhost:${PORT}`);
+  console.log(`🔥 ZombieSurvival API Server Running → http://localhost:${PORT}`);
 });
