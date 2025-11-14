@@ -9,10 +9,21 @@ export default class LoadScene extends Phaser.Scene {
   preload() {
     // 모든 에셋 경로의 공통 프리픽스 설정 (index.html이 있는 client 폴더 기준)
     this.load.setPath("assets/");
+    this.load.image("logo", "logo.png");
     this.load.image("background", "background.png");
     this.load.image("icon_skull", "icons/skull.png");
     this.load.image("icon_clock", "icons/clock.png");
     this.load.image("icon_gold", "icons/coins.png");
+    this.load.image("icon_inventory", "icons/inventory_icon.png");
+    this.load.image("icon_ranking", "icons/ranking_icon.png");
+    this.load.image("icon_auction", "icons/auction_icon.png");
+    this.load.image("background", "background.png");
+    this.load.image("logo", "logo.png");
+    this.load.image("play_button", "button/play_button.png");
+    this.load.image("inventory_button", "button/inventory_button.png");
+    this.load.image("ranking_button", "button/ranking_button.png");
+    this.load.image("auction_button", "button/auction_button.png");
+    this.load.image("kakaologin_button", "button/kakaologin_button.png");
 
     this.load.image("bullet", "beam.png");
     this.load.spritesheet("idle", "character/Gangsters_1/Idle.png", {
@@ -69,6 +80,6 @@ export default class LoadScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    this.scene.start("MainScene");
+    this.scene.start("InventoryScene");
   }
 }

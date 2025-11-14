@@ -1,12 +1,22 @@
 import LoadScene from "../scenes/LoadScene.js";
 import MainScene from "../scenes/MainScene.js";
 import PlayScene from "../scenes/PlayScene.js";
+import InventoryScene from "../scenes/popup/InventoryScene.js";
+import RankingScene from "../scenes/popup/RankingScene.js";
+import AuctionScene from "../scenes/popup/AuctionScene.js";
 
 export const PHASER_CONFIG = {
   type: Phaser.AUTO,
   width: window.innerWidth,
   height: window.innerHeight,
-  scene: [LoadScene, MainScene, PlayScene], // 등록 순서 중요
+  scene: [
+    LoadScene,
+    InventoryScene,
+    RankingScene,
+    AuctionScene,
+    MainScene,
+    PlayScene,
+  ], // 등록 순서 중요
   physics: {
     default: "arcade",
     arcade: { debug: true },
