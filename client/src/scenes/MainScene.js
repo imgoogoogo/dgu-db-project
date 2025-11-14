@@ -80,8 +80,88 @@ export default class MainScene extends Phaser.Scene {
       .setScale(baseScale);
     rankingBtn.on("pointerdown", () => {
       const iframe = document.getElementById("react-ui");
+      // 더미 랭킹 데이터
+      const rankingData = {
+        myRanking: {
+          rank: 12,
+          nickname: "PlayerOne",
+          maxStage: 45,
+          playTime: 5234,
+        },
+        rankings: [
+          {
+            rank: 1,
+            nickname: "ZombieSlayer",
+            maxStage: 87,
+            playTime: 14523,
+            lastPlayed: "2025-11-15 14:23",
+          },
+          {
+            rank: 2,
+            nickname: "SurvivalKing",
+            maxStage: 76,
+            playTime: 12845,
+            lastPlayed: "2025-11-14 18:47",
+          },
+          {
+            rank: 3,
+            nickname: "DeadHunter",
+            maxStage: 71,
+            playTime: 11234,
+            lastPlayed: "2025-11-09 20:15",
+          },
+          {
+            rank: 4,
+            nickname: "NightWalker",
+            maxStage: 65,
+            playTime: 9876,
+            lastPlayed: "2025-11-08 22:05",
+          },
+          {
+            rank: 5,
+            nickname: "Warrior2024",
+            maxStage: 58,
+            playTime: 8654,
+            lastPlayed: "2025-11-07 16:30",
+          },
+          {
+            rank: 6,
+            nickname: "FastRunner",
+            maxStage: 52,
+            playTime: 7234,
+            lastPlayed: "2024-06-10 19:50",
+          },
+          {
+            rank: 7,
+            nickname: "BraveSoul",
+            maxStage: 48,
+            playTime: 6543,
+            lastPlayed: "2024-06-09 21:10",
+          },
+          {
+            rank: 8,
+            nickname: "GhostKil2ler",
+            maxStage: 45,
+            playTime: 5987,
+            lastPlayed: "2024-06-08 20:00",
+          },
+        ],
+      };
       iframe.src = "src/scenes/popup/RankingScene.html";
       iframe.style.display = "block";
+
+      // iframe에서 READY 메시지를 기다림
+      const handleReady = (event) => {
+        if (event.data === "RANKING_READY") {
+          iframe.contentWindow.postMessage(
+            { type: "RANKING_DATA", payload: rankingData },
+            "*"
+          );
+          window.removeEventListener("message", handleReady);
+        }
+      };
+
+      window.addEventListener("message", handleReady);
     });
 
     const auctionBtn = this.add
