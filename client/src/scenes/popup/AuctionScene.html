@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Auction Scene (CDN JS Demo)</title>
+    <style>
+      /* 최소 스타일 - Tailwind를 사용하지 않는 환경을 위해 간단하게 만듭니다. */
+      body {
+        background: #0f1724;
+        color: #e6eef8;
+        font-family: Inter, system-ui, -apple-system, Roboto, "Helvetica Neue",
+          Arial;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #1a1d2e;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .title {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+      }
+      .btn {
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #e6eef8;
+        cursor: pointer;
+        font-size: 14px;
+        height: 40px;
+      }
+      .btn.active {
+        background: linear-gradient(90deg, #bcab48, #ffa500);
+        box-shadow: 0 0 24px rgba(168, 85, 247, 0.2);
+      }
+      .btn.filter {
+        padding: 6px 12px;
+        font-size: 13px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn.filter.active {
+        background: #4ea8de;
+        box-shadow: none;
+      }
+      .search {
+        position: relative;
+      }
+      .search input {
+        padding: 10px 12px 10px 36px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        color: inherit;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        height: 40px; /* match filter/button height */
+        box-sizing: border-box;
+      }
+      .search .icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .item-card {
+        background: #252838;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        margin-bottom: 12px;
+        transition: all 0.2s;
+      }
+      .item-card:hover {
+        border-color: rgba(255, 215, 0, 0.3);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+      }
+      .item-content {
+        display: grid;
+        grid-template-columns: 1fr 200px 150px 120px;
+        gap: 16px;
+        align-items: center;
+      }
+      .item-name {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      .stat-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-right: 6px;
+      }
+      .stat-badge.atk {
+        background: rgba(255, 107, 107, 0.15);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        color: #ff6b6b;
+      }
+      .stat-badge.def {
+        background: rgba(78, 168, 222, 0.15);
+        border: 1px solid rgba(78, 168, 222, 0.3);
+        color: #4ea8de;
+      }
+      .stat-badge.hp {
+        background: rgba(168, 85, 247, 0.15);
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        color: #a855f7;
+      }
+      .seller-info {
+        font-size: 13px;
+        color: #9aa3b2;
+      }
+      .price {
+        text-align: right;
+      }
+      .price-label {
+        font-size: 12px;
+        color: #9aa3b2;
+        margin-bottom: 4px;
+      }
+      .price-value {
+        font-size: 22px;
+        color: #ffd700;
+        font-weight: 600;
+      }
+      .buy-btn {
+        padding: 10px 20px;
+        /* 기본 상태는 일반 버튼(.btn)과 동일한 색상/테두리로 유지 */
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+        color: #e6eef8;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.15s, box-shadow 0.15s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+      }
+      .buy-btn:hover {
+        /* 호버 시 기존 그라데이션 + 스케일 효과 유지 */
+        background: linear-gradient(to right, #ffd700, #ffa500);
+        color: #000;
+        transform: scale(1.05);
+        box-shadow: 0 0 12px rgba(255, 215, 0, 0.12);
+      }
+      .cancel-btn {
+        padding: 10px 20px;
+        background: rgba(255, 107, 107, 0.15);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        border-radius: 8px;
+        color: #ff6b6b;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .cancel-btn:hover {
+        background: rgba(255, 107, 107, 0.25);
+      }
+      .gold-display {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="root"></div>
+    </div>
+
+    <!-- React & ReactDOM (UMD builds) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel (in-browser JSX transpile for demo) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Demo: AuctionScene converted from TSX -> JS (JSX) for CDN usage -->
+    <script type="text/babel">
+      const { useState } = React;
+
+      function AuctionScene({ onNavigate }) {
+        const [activeTab, setActiveTab] = useState("market");
+        const [activeFilter, setActiveFilter] = useState("all");
+        const [sortBy, setSortBy] = useState("recent");
+        const [searchQuery, setSearchQuery] = useState("");
+
+        const auctionItems = [
+          {
+            id: 1,
+            itemId: 101,
+            name: "화염의 검",
+            type: "weapon",
+            icon: "🔥",
+            atk: 65,
+            seller: "FireMaster",
+            price: 5000,
+            listedAt: Date.now() - 3600000,
+            rarity: "legendary",
+          },
+          {
+            id: 2,
+            itemId: 102,
+            name: "다이아몬드 갑옷",
+            type: "armor",
+            icon: "💎",
+            def: 80,
+            seller: "DefenseKing",
+            price: 8500,
+            listedAt: Date.now() - 7200000,
+            rarity: "legendary",
+          },
+          {
+            id: 3,
+            itemId: 103,
+            name: "번개 반지",
+            type: "accessory",
+            icon: "⚡",
+            atk: 25,
+            seller: "ThunderGod",
+            price: 3200,
+            listedAt: Date.now() - 1800000,
+            rarity: "epic",
+          },
+          {
+            id: 4,
+            itemId: 104,
+            name: "암살자의 단검",
+            type: "weapon",
+            icon: "🗡️",
+            atk: 45,
+            seller: "ShadowNinja",
+            price: 2800,
+            listedAt: Date.now() - 5400000,
+            rarity: "rare",
+          },
+          {
+            id: 5,
+            itemId: 105,
+            name: "마법사의 로브",
+            type: "armor",
+            icon: "🧙",
+            def: 35,
+            hp: 50,
+            seller: "MagicWizard",
+            price: 4200,
+            listedAt: Date.now() - 10800000,
+            rarity: "epic",
+          },
+        ];
+
+        const mySales = [
+          {
+            id: 201,
+            itemId: 201,
+            name: "강철 방패",
+            type: "armor",
+            icon: "🛡️",
+            def: 40,
+            seller: "CurrentPlayer",
+            price: 3500,
+            listedAt: Date.now() - 14400000,
+            rarity: "rare",
+          },
+        ];
+
+        const getTimeSince = (timestamp) => {
+          const seconds = Math.floor((Date.now() - timestamp) / 1000);
+          if (seconds < 3600) return `${Math.floor(seconds / 60)}분 전`;
+          if (seconds < 86400) return `${Math.floor(seconds / 3600)}시간 전`;
+          return `${Math.floor(seconds / 86400)}일 전`;
+        };
+
+        const filterAndSortItems = () => {
+          let items = auctionItems;
+
+          // Filter by type
+          if (activeFilter !== "all") {
+            items = items.filter((i) => i.type === activeFilter);
+          }
+
+          // Filter by search
+          if (searchQuery) {
+            items = items.filter((i) =>
+              i.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+          }
+
+          // Sort
+          if (sortBy === "price") {
+            items = [...items].sort((a, b) => a.price - b.price);
+          } else {
+            items = [...items].sort((a, b) => b.listedAt - a.listedAt);
+          }
+
+          return items;
+        };
+
+        const filteredItems = filterAndSortItems();
+
+        return (
+          <div className="card">
+            <div className="header">
+              <div className="left">
+                <img
+                  src="/assets/icons/auction_icon.png"
+                  alt="거래소 아이콘"
+                  style={{
+                    width: 18,
+                    height: 18,
+                  }}
+                />
+                <div className="title">거래소</div>
+              </div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <div className="gold-display">
+                  <span style={{ color: "#ffd700" }}>💰</span>
+                  <span style={{ color: "#ffd700" }}>보유 골드: 12,500G</span>
+                </div>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    window.parent.document.getElementById(
+                      "react-ui"
+                    ).style.display = "none";
+                  }}
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+
+            {/* Tabs and Controls - single row */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <button
+                  className={"btn " + (activeTab === "market" ? "active" : "")}
+                  onClick={() => setActiveTab("market")}
+                >
+                  경매장
+                </button>
+                <button
+                  className={
+                    "btn " + (activeTab === "my-sales" ? "active" : "")
+                  }
+                  onClick={() => setActiveTab("my-sales")}
+                >
+                  내 판매 목록
+                </button>
+              </div>
+
+              {activeTab === "market" && (
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <div
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
+                  >
+                    <button
+                      className={
+                        "btn filter " + (activeFilter === "all" ? "active" : "")
+                      }
+                      onClick={() => setActiveFilter("all")}
+                    >
+                      전체
+                    </button>
+                    <button
+                      className={
+                        "btn filter " +
+                        (activeFilter === "weapon" ? "active" : "")
+                      }
+                      onClick={() => setActiveFilter("weapon")}
+                    >
+                      무기
+                    </button>
+                    <button
+                      className={
+                        "btn filter " +
+                        (activeFilter === "armor" ? "active" : "")
+                      }
+                      onClick={() => setActiveFilter("armor")}
+                    >
+                      방어구
+                    </button>
+                    <button
+                      className={
+                        "btn filter " +
+                        (activeFilter === "accessory" ? "active" : "")
+                      }
+                      onClick={() => setActiveFilter("accessory")}
+                    >
+                      기타
+                    </button>
+                  </div>
+                  <div className="search">
+                    <span className="icon">🔍</span>
+                    <input
+                      placeholder="아이템 검색..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {activeTab === "market" && (
+              <>
+                {/* Items List */}
+                <div>
+                  {filteredItems.map((item) => (
+                    <div key={item.id} className="item-card">
+                      <div className="item-content">
+                        <div>
+                          <div className="item-name">{item.name}</div>
+                          <div>
+                            {item.atk && (
+                              <span className="stat-badge atk">
+                                +{item.atk} ATK
+                              </span>
+                            )}
+                            {item.def && (
+                              <span className="stat-badge def">
+                                +{item.def} DEF
+                              </span>
+                            )}
+                            {item.hp && (
+                              <span className="stat-badge hp">
+                                +{item.hp} HP
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="seller-info">
+                          <div>판매자: {item.seller}</div>
+                          <div>{getTimeSince(item.listedAt)}</div>
+                        </div>
+
+                        <div className="price">
+                          <div className="price-label">가격</div>
+                          <div className="price-value">
+                            {item.price.toLocaleString()}G
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: "right" }}>
+                          <button className="buy-btn">구매</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {activeTab === "my-sales" && (
+              <>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 16,
+                    color: "#9aa3b2",
+                  }}
+                ></div>
+
+                <div>
+                  {mySales.map((item) => (
+                    <div key={item.id} className="item-card">
+                      <div className="item-content">
+                        <div>
+                          <div className="item-name">{item.name}</div>
+                          <div>
+                            {item.def && (
+                              <span className="stat-badge def">
+                                +{item.def} DEF
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="seller-info">
+                          등록: {getTimeSince(item.listedAt)}
+                        </div>
+
+                        <div className="price">
+                          <div className="price-label">판매가</div>
+                          <div className="price-value">
+                            {item.price.toLocaleString()}G
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: "right" }}>
+                          <button className="cancel-btn">판매 취소</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        );
+      }
+
+      // 예시 렌더링: root에 붙이기
+      ReactDOM.createRoot(document.getElementById("root")).render(
+        React.createElement(AuctionScene, {
+          onNavigate: (scene) => {
+            console.log("navigate to", scene);
+          },
+        })
+      );
+    </script>
+  </body>
+</html>

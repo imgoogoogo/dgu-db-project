@@ -68,19 +68,31 @@ export default class MainScene extends Phaser.Scene {
       .image(-spacing, smallButtonY, "inventory_button")
       .setInteractive({ useHandCursor: true })
       .setScale(baseScale);
-    inventoryBtn.on("pointerdown", () => this.scene.start("InventoryScene"));
+    inventoryBtn.on("pointerdown", async () => {
+      const iframe = document.getElementById("react-ui");
+      iframe.src = "src/scenes/popup/InventoryScene.html";
+      iframe.style.display = "block";
+    });
 
     const rankingBtn = this.add
       .image(0, smallButtonY, "ranking_button")
       .setInteractive({ useHandCursor: true })
       .setScale(baseScale);
-    rankingBtn.on("pointerdown", () => this.scene.start("RankingScene"));
+    rankingBtn.on("pointerdown", () => {
+      const iframe = document.getElementById("react-ui");
+      iframe.src = "src/scenes/popup/RankingScene.html";
+      iframe.style.display = "block";
+    });
 
     const auctionBtn = this.add
       .image(spacing, smallButtonY, "auction_button")
       .setInteractive({ useHandCursor: true })
       .setScale(baseScale);
-    auctionBtn.on("pointerdown", () => this.scene.start("AuctionScene"));
+    auctionBtn.on("pointerdown", () => {
+      const iframe = document.getElementById("react-ui");
+      iframe.src = "src/scenes/popup/AuctionScene.html";
+      iframe.style.display = "block";
+    });
 
     menuContainer.add([inventoryBtn, rankingBtn, auctionBtn]);
 

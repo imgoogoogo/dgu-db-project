@@ -80,6 +80,6 @@ export default class LoadScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    this.scene.start("InventoryScene");
+    this.scene.start("MainScene");
   }
 }

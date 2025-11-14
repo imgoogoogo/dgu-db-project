@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inventory Scene (CDN JS Demo)</title>
+    <style>
+      /* 최소 스타일 - Tailwind를 사용하지 않는 환경을 위해 간단하게 만듭니다. */
+      body {
+        background: #0f1724;
+        color: #e6eef8;
+        font-family: Inter, system-ui, -apple-system, Roboto, "Helvetica Neue",
+          Arial;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #1a1d2e;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .title {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .btn {
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #e6eef8;
+        cursor: pointer;
+        font-size: 14px;
+        height: 40px;
+      }
+      .btn.active {
+        background: linear-gradient(90deg, #bcab48, #ffa500);
+        box-shadow: 0 0 24px rgba(168, 85, 247, 0.2);
+      }
+      .btn.filter {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+      .btn.filter.active {
+        background: #4ea8de;
+        box-shadow: none;
+      }
+      .search {
+        position: relative;
+      }
+      .search input {
+        padding: 10px 12px 10px 36px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        color: inherit;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        height: 40px; /* match filter/button height */
+        box-sizing: border-box;
+      }
+      .search .icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .gold-display {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #2a2d3e;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .stats-summary {
+        background: #252838;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        margin-bottom: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .stats-summary > div {
+        display: flex;
+        flex-direction: column;
+        height: 98%;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        flex: 1;
+      }
+      .stat-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+      }
+      .stat-box-label {
+        font-size: 12px;
+        color: #9aa3b2;
+        min-width: 50px;
+      }
+      .stat-box-value {
+        font-size: 20px;
+        font-weight: 600;
+        flex: 1;
+        text-align: center;
+      }
+      .item-card {
+        background: #252838;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        margin-bottom: 12px;
+        transition: all 0.2s;
+      }
+      .item-card:hover {
+        border-color: rgba(255, 215, 0, 0.3);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+      }
+      .item-card.equipped {
+        border-color: #ffd700;
+        background: rgba(255, 215, 0, 0.05);
+      }
+      .item-content {
+        display: grid;
+        grid-template-columns: 1fr 250px 150px;
+        gap: 16px;
+        align-items: center;
+      }
+      .item-name {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      .item-type {
+        font-size: 12px;
+        color: #9aa3b2;
+      }
+      .stat-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-right: 6px;
+      }
+      .stat-badge.atk {
+        background: rgba(255, 107, 107, 0.15);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        color: #ff6b6b;
+      }
+      .stat-badge.def {
+        background: rgba(78, 168, 222, 0.15);
+        border: 1px solid rgba(78, 168, 222, 0.3);
+        color: #4ea8de;
+      }
+      .stat-badge.hp {
+        background: rgba(168, 85, 247, 0.15);
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        color: #a855f7;
+      }
+      .equipped-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        background: #ffd700;
+        color: #000;
+        margin-left: 8px;
+      }
+      .rarity-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .rarity-legendary {
+        background: rgba(255, 215, 0, 0.15);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        color: #ffd700;
+      }
+      .rarity-epic {
+        background: rgba(168, 85, 247, 0.15);
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        color: #a855f7;
+      }
+      .rarity-rare {
+        background: rgba(78, 168, 222, 0.15);
+        border: 1px solid rgba(78, 168, 222, 0.3);
+        color: #4ea8de;
+      }
+      .rarity-common {
+        background: rgba(155, 163, 178, 0.15);
+        border: 1px solid rgba(155, 163, 178, 0.3);
+        color: #9aa3b2;
+      }
+      .action-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 13px;
+      }
+      .action-btn.equip {
+        background: linear-gradient(to right, #ffd700, #ffa500);
+        color: #000;
+      }
+      .action-btn.equip:hover {
+        transform: scale(1.05);
+      }
+      .action-btn.unequip {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #e6eef8;
+      }
+      .action-btn.unequip:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .action-btn.sell {
+        background: rgba(255, 107, 107, 0.15);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        color: #ff6b6b;
+      }
+      .action-btn.sell:hover {
+        background: rgba(255, 107, 107, 0.25);
+      }
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9aa3b2;
+      }
+      .equipment-slot {
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .equipment-slot.equipped {
+        border-color: rgba(255, 215, 0, 0.3);
+        background: rgba(255, 215, 0, 0.05);
+      }
+      .equipment-slot-label {
+        font-size: 12px;
+        color: #9aa3b2;
+      }
+      .equipment-slot-name {
+        font-size: 13px;
+        color: #e6eef8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="root"></div>
+    </div>
+
+    <!-- React & ReactDOM (UMD builds) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel (in-browser JSX transpile for demo) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Demo: InventoryScene converted from TSX -> JS (JSX) for CDN usage -->
+    <script type="text/babel">
+      const { useState } = React;
+
+      function InventoryScene({ onNavigate }) {
+        const [activeFilter, setActiveFilter] = useState("all");
+        const [searchQuery, setSearchQuery] = useState("");
+
+        const inventoryItems = [
+          {
+            id: 1,
+            name: "화염의 검",
+            type: "weapon",
+            atk: 65,
+            rarity: "legendary",
+            equipped: true,
+            description: "불꽃으로 적을 불태우는 전설의 검",
+            sellPrice: 2500,
+          },
+          {
+            id: 2,
+            name: "다이아몬드 갑옷",
+            type: "armor",
+            def: 80,
+            rarity: "legendary",
+            equipped: true,
+            description: "최고급 다이아몬드로 만든 갑옷",
+            sellPrice: 4000,
+          },
+          {
+            id: 3,
+            name: "체력 포션",
+            type: "consumable",
+            hp: 50,
+            quantity: 12,
+            rarity: "common",
+            description: "HP를 50 회복시킨다",
+            sellPrice: 50,
+          },
+          {
+            id: 4,
+            name: "번개 반지",
+            type: "accessory",
+            atk: 25,
+            rarity: "epic",
+            equipped: false,
+            description: "번개의 힘이 깃든 반지",
+            sellPrice: 1500,
+          },
+          {
+            id: 5,
+            name: "마나 포션",
+            type: "consumable",
+            mp: 30,
+            quantity: 8,
+            rarity: "common",
+            description: "MP를 30 회복시킨다",
+            sellPrice: 40,
+          },
+          {
+            id: 6,
+            name: "암살자의 단검",
+            type: "weapon",
+            atk: 45,
+            rarity: "rare",
+            equipped: false,
+            description: "빠른 공격에 특화된 단검",
+            sellPrice: 1200,
+          },
+          {
+            id: 7,
+            name: "가죽 장갑",
+            type: "armor",
+            def: 15,
+            rarity: "common",
+            equipped: false,
+            description: "기본적인 방어력을 제공",
+            sellPrice: 300,
+          },
+          {
+            id: 8,
+            name: "황금 목걸이",
+            type: "accessory",
+            hp: 30,
+            rarity: "rare",
+            equipped: true,
+            description: "최대 체력을 증가시킨다",
+            sellPrice: 800,
+          },
+        ];
+
+        const playerStats = {
+          totalAtk: 135,
+          totalDef: 95,
+          totalHp: 250,
+        };
+
+        const filterItems = () => {
+          let items = inventoryItems;
+
+          // Filter by type
+          if (activeFilter !== "all") {
+            items = items.filter((i) => i.type === activeFilter);
+          }
+
+          // Filter by search
+          if (searchQuery) {
+            items = items.filter((i) =>
+              i.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+          }
+
+          return items;
+        };
+
+        const filteredItems = filterItems();
+
+        const getRarityClass = (rarity) => {
+          return `rarity-${rarity}`;
+        };
+
+        const getTypeLabel = (type) => {
+          switch (type) {
+            case "weapon":
+              return "무기";
+            case "armor":
+              return "방어구";
+            case "accessory":
+              return "악세서리";
+            case "consumable":
+              return "소비";
+            default:
+              return type;
+          }
+        };
+
+        return (
+          <div className="card">
+            <div className="header">
+              <div className="left">
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    background: "linear-gradient(135deg, #a855f7, #6366f1)",
+                    borderRadius: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  🎒
+                </div>
+                <div className="title">인벤토리</div>
+              </div>
+              <button
+                className="btn"
+                onClick={() => {
+                  window.parent.document.getElementById(
+                    "react-ui"
+                  ).style.display = "none";
+                }}
+              >
+                닫기
+              </button>
+            </div>
+
+            {/* Stats Summary */}
+            <div className="stats-summary">
+              {/* Left: 능력치 */}
+              <div>
+                <div
+                  style={{ marginBottom: 12, color: "#9aa3b2", fontSize: 13 }}
+                >
+                  현재 능력치
+                </div>
+                <div className="stats-grid">
+                  <div className="stat-box">
+                    <div className="stat-box-label">체력</div>
+                    <div
+                      className="stat-box-value"
+                      style={{ color: "#a855f7" }}
+                    >
+                      {playerStats.totalHp}
+                    </div>
+                    <button
+                      className="btn"
+                      style={{ height: 30, fontSize: 12, marginTop: 0 }}
+                      onClick={() => console.log("체력 강화")}
+                    >
+                      강화
+                    </button>
+                  </div>
+                  <div className="stat-box">
+                    <div className="stat-box-label">공격력</div>
+                    <div
+                      className="stat-box-value"
+                      style={{ color: "#ff6b6b" }}
+                    >
+                      {playerStats.totalAtk}
+                    </div>
+                    <button
+                      className="btn"
+                      style={{ height: 30, fontSize: 12, marginTop: 0 }}
+                      onClick={() => console.log("공격력 강화")}
+                    >
+                      강화
+                    </button>
+                  </div>
+                  <div className="stat-box">
+                    <div className="stat-box-label">방어력</div>
+                    <div
+                      className="stat-box-value"
+                      style={{ color: "#4ea8de" }}
+                    >
+                      {playerStats.totalDef}
+                    </div>
+                    <button
+                      className="btn"
+                      style={{ height: 30, fontSize: 12, marginTop: 0 }}
+                      onClick={() => console.log("방어력 강화")}
+                    >
+                      강화
+                    </button>
+                  </div>
+
+                  {/* 보유 골드 */}
+                  <div className="stat-box">
+                    <div className="stat-box-label">보유골드</div>
+                    <div
+                      className="stat-box-value"
+                      style={{ color: "#ffd700" }}
+                    >
+                      💰 12,500G
+                    </div>
+                    <div style={{ width: 60 }}></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: 착용 장비 */}
+              <div>
+                <div
+                  style={{ marginBottom: 12, color: "#9aa3b2", fontSize: 13 }}
+                >
+                  착용 장비
+                </div>
+                <div>
+                  <div className="equipment-slot">
+                    <div className="equipment-slot-label">모자</div>
+                    <div
+                      className="equipment-slot-name"
+                      style={{ color: "#666" }}
+                    >
+                      비어있음
+                    </div>
+                  </div>
+                  <div className="equipment-slot equipped">
+                    <div className="equipment-slot-label">상의</div>
+                    <div className="equipment-slot-name">다이아몬드 갑옷</div>
+                  </div>
+                  <div className="equipment-slot">
+                    <div className="equipment-slot-label">하의</div>
+                    <div
+                      className="equipment-slot-name"
+                      style={{ color: "#666" }}
+                    >
+                      비어있음
+                    </div>
+                  </div>
+                  <div className="equipment-slot">
+                    <div className="equipment-slot-label">신발</div>
+                    <div
+                      className="equipment-slot-name"
+                      style={{ color: "#666" }}
+                    >
+                      비어있음
+                    </div>
+                  </div>
+                  <div className="equipment-slot">
+                    <div className="equipment-slot-label">장갑</div>
+                    <div
+                      className="equipment-slot-name"
+                      style={{ color: "#666" }}
+                    >
+                      비어있음
+                    </div>
+                  </div>
+                  <div className="equipment-slot equipped">
+                    <div className="equipment-slot-label">반지</div>
+                    <div className="equipment-slot-name">황금 목걸이</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs and Controls - single row */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 8,
+              }}
+            >
+              <div style={{ color: "#9aa3b2", fontSize: 14 }}>
+                소유하고 있는 아이템
+              </div>
+
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <button
+                  className={"btn " + (activeFilter === "all" ? "active" : "")}
+                  onClick={() => setActiveFilter("all")}
+                >
+                  전체
+                </button>
+                <button
+                  className={
+                    "btn " + (activeFilter === "weapon" ? "active" : "")
+                  }
+                  onClick={() => setActiveFilter("weapon")}
+                >
+                  무기
+                </button>
+                <button
+                  className={
+                    "btn " + (activeFilter === "armor" ? "active" : "")
+                  }
+                  onClick={() => setActiveFilter("armor")}
+                >
+                  방어구
+                </button>
+                <button
+                  className={
+                    "btn " + (activeFilter === "accessory" ? "active" : "")
+                  }
+                  onClick={() => setActiveFilter("accessory")}
+                >
+                  기타
+                </button>
+
+                <div className="search">
+                  <span className="icon">🔍</span>
+                  <input
+                    placeholder="아이템 검색..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Items List */}
+            <div style={{ marginTop: 12 }}>
+              {filteredItems.length > 0 ? (
+                filteredItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className={"item-card" + (item.equipped ? " equipped" : "")}
+                  >
+                    <div className="item-content">
+                      <div>
+                        <div className="item-name">
+                          {item.name}
+                          {item.equipped && (
+                            <span className="equipped-badge">장착중</span>
+                          )}
+                        </div>
+                        <div>
+                          <span className="item-type">
+                            {getTypeLabel(item.type)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        {item.atk && (
+                          <span className="stat-badge atk">
+                            +{item.atk} ATK
+                          </span>
+                        )}
+                        {item.def && (
+                          <span className="stat-badge def">
+                            +{item.def} DEF
+                          </span>
+                        )}
+                        {item.hp && (
+                          <span className="stat-badge hp">+{item.hp} HP</span>
+                        )}
+                        {item.quantity && (
+                          <span className="stat-badge hp">
+                            ×{item.quantity}
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {item.type === "consumable" ? (
+                          <button className="action-btn equip">사용</button>
+                        ) : item.equipped ? (
+                          <button className="action-btn unequip">해제</button>
+                        ) : (
+                          <button className="action-btn equip">장착</button>
+                        )}
+                        <button className="action-btn sell">판매</button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+                  <div>아이템이 없습니다</div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // 예시 렌더링: root에 붙이기
+      ReactDOM.createRoot(document.getElementById("root")).render(
+        React.createElement(InventoryScene, {
+          onNavigate: (scene) => {
+            console.log("navigate to", scene);
+          },
+        })
+      );
+    </script>
+  </body>
+</html>
