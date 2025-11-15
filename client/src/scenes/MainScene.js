@@ -7,6 +7,7 @@ export default class MainScene extends Phaser.Scene {
 
   create() {
     const { width: sw, height: sh } = this.scale;
+    const iframe = document.getElementById("react-ui");
 
     // --- 흐린 검은색 오버레이 추가 ---
     const overlay = this.add.rectangle(sw / 2, sh / 2, sw, sh, 0x000000, 0.3);
@@ -69,9 +70,52 @@ export default class MainScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .setScale(baseScale);
     inventoryBtn.on("pointerdown", async () => {
-      const iframe = document.getElementById("react-ui");
+      // 더미 인벤토리 데이터
+      const inventoryData = {
+        myGold: 1500,
+        playerStats: {
+          totalAtk: 135,
+          totalDef: 95,
+          totalHp: 250,
+        },
+        inventoryItems: [
+          {
+            id: 1,
+            name: "화염의 검",
+            type: "weapon",
+            hp: 50,
+            atk: 65,
+            def: 20,
+            equipped: false,
+            desc: "불꽃으로 적을 불태우는 전설의 검",
+          },
+          {
+            id: 2,
+            name: "모자",
+            type: "hat",
+            atk: 65,
+            hp: 50,
+            equipped: false,
+            desc: "불꽃으로 적을 불태우는 전설의 검",
+          },
+        ],
+      };
+
       iframe.src = "src/scenes/popup/InventoryScene.html";
       iframe.style.display = "block";
+
+      // iframe에서 READY 메시지를 기다림
+      const handleReady = (event) => {
+        if (event.data === "INVENTORY_READY") {
+          iframe.contentWindow.postMessage(
+            { type: "INVENTORY_DATA", payload: inventoryData },
+            "*"
+          );
+          window.removeEventListener("message", handleReady);
+        }
+      };
+
+      window.addEventListener("message", handleReady);
     });
 
     const rankingBtn = this.add
@@ -79,7 +123,6 @@ export default class MainScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .setScale(baseScale);
     rankingBtn.on("pointerdown", () => {
-      const iframe = document.getElementById("react-ui");
       // 더미 랭킹 데이터
       const rankingData = {
         myRanking: {
@@ -147,6 +190,7 @@ export default class MainScene extends Phaser.Scene {
           },
         ],
       };
+
       iframe.src = "src/scenes/popup/RankingScene.html";
       iframe.style.display = "block";
 
@@ -169,9 +213,52 @@ export default class MainScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .setScale(baseScale);
     auctionBtn.on("pointerdown", () => {
-      const iframe = document.getElementById("react-ui");
+      // 더미 경매장 데이터
+      const auctionData = {
+        myGold: 1000,
+        auctionItems: [
+          {
+            id: 1,
+            name: "번개 반지",
+            type: "weapon",
+            hp: 10,
+            atk: 20,
+            def: 30,
+            seller: "고영민",
+            time: "2024-06-09T21:10:00",
+            price: 3253,
+          },
+        ],
+        mySales: [
+          {
+            id: 2,
+            name: "번개 반지",
+            type: "weapon",
+            hp: 10,
+            atk: 20,
+            def: 30,
+            seller: "고영민",
+            time: "2024-06-09T21:10:00",
+            price: 3253,
+          },
+        ],
+      };
+
       iframe.src = "src/scenes/popup/AuctionScene.html";
       iframe.style.display = "block";
+
+      // iframe에서 READY 메시지를 기다림
+      const handleReady = (event) => {
+        if (event.data === "AUCTION_READY") {
+          iframe.contentWindow.postMessage(
+            { type: "AUCTION_DATA", payload: auctionData },
+            "*"
+          );
+          window.removeEventListener("message", handleReady);
+        }
+      };
+
+      window.addEventListener("message", handleReady);
     });
 
     menuContainer.add([inventoryBtn, rankingBtn, auctionBtn]);

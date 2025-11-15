@@ -55,7 +55,7 @@
         height: 40px;
       }
       .btn.active {
-        background: linear-gradient(90deg, #bcab48, #ffa500);
+        background: linear-gradient(90deg, #a855f7, #7c3aed);
         box-shadow: 0 0 24px rgba(168, 85, 247, 0.2);
       }
       .btn.filter {
@@ -108,7 +108,7 @@
       }
       .item-content {
         display: grid;
-        grid-template-columns: 1fr 200px 150px 120px;
+        grid-template-columns: 1fr 90px 150px 120px;
         gap: 16px;
         align-items: center;
       }
@@ -124,7 +124,7 @@
         font-size: 12px;
         margin-right: 6px;
       }
-      .stat-badge.atk {
+      .stat-badge.hp {
         background: rgba(255, 107, 107, 0.15);
         border: 1px solid rgba(255, 107, 107, 0.3);
         color: #ff6b6b;
@@ -134,7 +134,7 @@
         border: 1px solid rgba(78, 168, 222, 0.3);
         color: #4ea8de;
       }
-      .stat-badge.hp {
+      .stat-badge.atk {
         background: rgba(168, 85, 247, 0.15);
         border: 1px solid rgba(168, 85, 247, 0.3);
         color: #a855f7;
@@ -142,6 +142,7 @@
       .seller-info {
         font-size: 13px;
         color: #9aa3b2;
+        line-height: 1.8;
       }
       .price {
         text-align: right;
@@ -173,8 +174,8 @@
       }
       .buy-btn:hover {
         /* 호버 시 기존 그라데이션 + 스케일 효과 유지 */
-        background: linear-gradient(to right, #ffd700, #ffa500);
-        color: #000;
+        background: linear-gradient(to right, #a855f7, #7c3aed);
+        color: #e6eef8;
         transform: scale(1.05);
         box-shadow: 0 0 12px rgba(255, 215, 0, 0.12);
       }
@@ -199,13 +200,31 @@
         border-radius: 8px;
         border: 1px solid rgba(255, 255, 255, 0);
       }
+      .notyf__toast {
+        padding: 0px 20px !important; /* 기본 16px → 더 작게 */
+        border-radius: 6px !important; /* 모서리 둥근 정도 */
+        width: auto !important; /* 자동 너비 */
+        max-width: 500px !important; /* 최대 너비 늘리기 */
+        max-height: 100vh !important; /* 높이 최대로 */
+        display: inline-block !important; /* 가로로 늘어나게 */
+        box-shadow: none !important; /* 그림자 삭제 */
+      }
+      .notyf__message {
+        font-size: 15px !important; /* 글씨 크기 줄이기 */
+        line-height: 1.2 !important;
+        display: block !important;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <div id="root"></div>
     </div>
-
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
     <!-- React & ReactDOM (UMD builds) -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -213,7 +232,8 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Demo: AuctionScene converted from TSX -> JS (JSX) for CDN usage -->
     <script type="text/babel">
-      const { useState } = React;
+      const { useState, useEffect } = React;
+      const notyf = new Notyf({ ripple: false });
 
       function AuctionScene({ onNavigate }) {
         const [activeTab, setActiveTab] = useState("market");
@@ -221,84 +241,119 @@
         const [sortBy, setSortBy] = useState("recent");
         const [searchQuery, setSearchQuery] = useState("");
 
-        const auctionItems = [
-          {
-            id: 1,
-            itemId: 101,
-            name: "화염의 검",
-            type: "weapon",
-            icon: "🔥",
-            atk: 65,
-            seller: "FireMaster",
-            price: 5000,
-            listedAt: Date.now() - 3600000,
-            rarity: "legendary",
-          },
-          {
-            id: 2,
-            itemId: 102,
-            name: "다이아몬드 갑옷",
-            type: "armor",
-            icon: "💎",
-            def: 80,
-            seller: "DefenseKing",
-            price: 8500,
-            listedAt: Date.now() - 7200000,
-            rarity: "legendary",
-          },
-          {
-            id: 3,
-            itemId: 103,
-            name: "번개 반지",
-            type: "accessory",
-            icon: "⚡",
-            atk: 25,
-            seller: "ThunderGod",
-            price: 3200,
-            listedAt: Date.now() - 1800000,
-            rarity: "epic",
-          },
-          {
-            id: 4,
-            itemId: 104,
-            name: "암살자의 단검",
-            type: "weapon",
-            icon: "🗡️",
-            atk: 45,
-            seller: "ShadowNinja",
-            price: 2800,
-            listedAt: Date.now() - 5400000,
-            rarity: "rare",
-          },
-          {
-            id: 5,
-            itemId: 105,
-            name: "마법사의 로브",
-            type: "armor",
-            icon: "🧙",
-            def: 35,
-            hp: 50,
-            seller: "MagicWizard",
-            price: 4200,
-            listedAt: Date.now() - 10800000,
-            rarity: "epic",
-          },
-        ];
+        const [auctionItems, setAuctionItems] = useState([]);
+        const [mySales, setMySales] = useState([]);
+        const [myGold, setMyGold] = useState(0);
 
-        const mySales = [
-          {
-            id: 201,
-            itemId: 201,
-            name: "강철 방패",
-            type: "armor",
-            icon: "🛡️",
-            def: 40,
-            seller: "CurrentPlayer",
-            price: 3500,
-            listedAt: Date.now() - 14400000,
-            rarity: "rare",
-          },
-        ];
+        useEffect(() => {
+          window.parent.postMessage("AUCTION_READY", "*");
+          const handler = (event) => {
+            if (event.data?.type === "AUCTION_DATA") {
+              setMyGold(event.data.payload.myGold); // UI 업데이트
+              setAuctionItems(event.data.payload.auctionItems); // UI 업데이트
+              setMySales(event.data.payload.mySales); // UI 업데이트
+            }
+          };
+
+          window.addEventListener("message", handler);
+          return () => window.removeEventListener("message", handler);
+        }, []);
+
+        // 구매 버튼 클릭 시 아이템 제거
+        const handleBuy = (auctionItem) => {
+          if (myGold < auctionItem.price) {
+            notyf.error("골드가 부족하여 구매할 수 없습니다.");
+            return;
+          }
+          setAuctionItems((prev) =>
+            prev.filter((item) => item.id !== auctionItem.id)
+          );
+          notyf.success("구매 완료!");
+        };
+
+        const handleCancelSale = (auctionId) => {
+          setMySales((prev) => prev.filter((item) => item.id !== auctionId));
+          notyf.success("판매 취소 완료!");
+        };
+
+        //  const auctionItems = [
+        //   {
+        //     id: 1,
+        //     itemId: 101,
+        //     name: "화염의 검",
+        //     type: "weapon",
+        //     icon: "🔥",
+        //     atk: 65,
+        //     seller: "FireMaster",
+        //     price: 5000,
+        //     listedAt: Date.now() - 3600000,
+        //     rarity: "legendary",
+        //   },
+        //   {
+        //     id: 2,
+        //     itemId: 102,
+        //     name: "다이아몬드 갑옷",
+        //     type: "armor",
+        //     icon: "💎",
+        //     def: 80,
+        //     seller: "DefenseKing",
+        //     price: 8500,
+        //     listedAt: Date.now() - 7200000,
+        //     rarity: "legendary",
+        //   },
+        //   {
+        //     id: 3,
+        //     itemId: 103,
+        //     name: "번개 반지",
+        //     type: "accessory",
+        //     icon: "⚡",
+        //     atk: 25,
+        //     seller: "ThunderGod",
+        //     price: 3200,
+        //     listedAt: Date.now() - 1800000,
+        //     rarity: "epic",
+        //   },
+        //   {
+        //     id: 4,
+        //     itemId: 104,
+        //     name: "암살자의 단검",
+        //     type: "weapon",
+        //     icon: "🗡️",
+        //     atk: 45,
+        //     seller: "ShadowNinja",
+        //     price: 2800,
+        //     listedAt: Date.now() - 5400000,
+        //     rarity: "rare",
+        //   },
+        //   {
+        //     id: 5,
+        //     itemId: 105,
+        //     name: "마법사의 로브",
+        //     type: "armor",
+        //     icon: "🧙",
+        //     def: 35,
+        //     hp: 50,
+        //     seller: "MagicWizard",
+        //     price: 4200,
+        //     listedAt: Date.now() - 10800000,
+        //     rarity: "epic",
+        //   },
+        // ];
+
+        //  const mySales = [
+        //   {
+        //     id: 201,
+        //     itemId: 201,
+        //     name: "강철 방패",
+        //     type: "armor",
+        //     icon: "🛡️",
+        //     def: 40,
+        //     seller: "CurrentPlayer",
+        //     price: 3500,
+        //     listedAt: Date.now() - 14400000,
+        //     rarity: "rare",
+        //   },
+        // ];
 
         const getTimeSince = (timestamp) => {
           const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -350,8 +405,15 @@
               </div>
               <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                 <div className="gold-display">
-                  <span style={{ color: "#ffd700" }}>💰</span>
-                  <span style={{ color: "#ffd700" }}>보유 골드: 12,500G</span>
+                  <img
+                    src="/assets/icons/coins.png"
+                    width="16"
+                    height="16"
+                    style={{ verticalAlign: "middle" }}
+                  />
+                  <span style={{ color: "#ffd700", fontSize: "14px" }}>
+                    보유 골드: {myGold}G
+                  </span>
                 </div>
                 <button
                   className="btn"
@@ -407,30 +469,55 @@
                     </button>
                     <button
                       className={
+                        "btn filter " + (activeFilter === "hat" ? "active" : "")
+                      }
+                      onClick={() => setActiveFilter("hat")}
+                    >
+                      모자
+                    </button>
+                    <button
+                      className={
+                        "btn filter " + (activeFilter === "top" ? "active" : "")
+                      }
+                      onClick={() => setActiveFilter("top")}
+                    >
+                      상의
+                    </button>
+                    <button
+                      className={
+                        "btn filter " +
+                        (activeFilter === "bottom" ? "active" : "")
+                      }
+                      onClick={() => setActiveFilter("bottom")}
+                    >
+                      하의
+                    </button>
+                    <button
+                      className={
+                        "btn filter " +
+                        (activeFilter === "shoe" ? "active" : "")
+                      }
+                      onClick={() => setActiveFilter("shoe")}
+                    >
+                      신발
+                    </button>
+                    <button
+                      className={
+                        "btn filter " +
+                        (activeFilter === "glove" ? "active" : "")
+                      }
+                      onClick={() => setActiveFilter("glove")}
+                    >
+                      장갑
+                    </button>
+                    <button
+                      className={
                         "btn filter " +
                         (activeFilter === "weapon" ? "active" : "")
                       }
                       onClick={() => setActiveFilter("weapon")}
                     >
                       무기
-                    </button>
-                    <button
-                      className={
-                        "btn filter " +
-                        (activeFilter === "armor" ? "active" : "")
-                      }
-                      onClick={() => setActiveFilter("armor")}
-                    >
-                      방어구
-                    </button>
-                    <button
-                      className={
-                        "btn filter " +
-                        (activeFilter === "accessory" ? "active" : "")
-                      }
-                      onClick={() => setActiveFilter("accessory")}
-                    >
-                      기타
                     </button>
                   </div>
                   <div className="search">
@@ -455,6 +542,11 @@
                         <div>
                           <div className="item-name">{item.name}</div>
                           <div>
+                            {item.hp && (
+                              <span className="stat-badge hp">
+                                +{item.hp} HP
+                              </span>
+                            )}
                             {item.atk && (
                               <span className="stat-badge atk">
                                 +{item.atk} ATK
@@ -465,28 +557,30 @@
                                 +{item.def} DEF
                               </span>
                             )}
-                            {item.hp && (
-                              <span className="stat-badge hp">
-                                +{item.hp} HP
-                              </span>
-                            )}
                           </div>
                         </div>
 
                         <div className="seller-info">
                           <div>판매자: {item.seller}</div>
-                          <div>{getTimeSince(item.listedAt)}</div>
+                          <div>
+                            🕐 {getTimeSince(new Date(item.time).getTime())}
+                          </div>
                         </div>
 
                         <div className="price">
-                          <div className="price-label">가격</div>
+                          <div className="price-label">판매가</div>
                           <div className="price-value">
                             {item.price.toLocaleString()}G
                           </div>
                         </div>
 
                         <div style={{ textAlign: "right" }}>
-                          <button className="buy-btn">구매</button>
+                          <button
+                            className="buy-btn"
+                            onClick={() => handleBuy(item)}
+                          >
+                            구매
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -523,7 +617,7 @@
                         </div>
 
                         <div className="seller-info">
-                          등록: {getTimeSince(item.listedAt)}
+                          🕐 {getTimeSince(new Date(item.time).getTime())}
                         </div>
 
                         <div className="price">
@@ -534,7 +628,12 @@
                         </div>
 
                         <div style={{ textAlign: "right" }}>
-                          <button className="cancel-btn">판매 취소</button>
+                          <button
+                            className="cancel-btn"
+                            onClick={() => handleCancelSale(item.id)}
+                          >
+                            판매 취소
+                          </button>
                         </div>
                       </div>
                     </div>

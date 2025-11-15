@@ -51,7 +51,7 @@
         height: 40px;
       }
       .btn.active {
-        background: linear-gradient(90deg, #bcab48, #ffa500);
+        background: linear-gradient(90deg, #3b82f6, #2563eb);
         box-shadow: 0 0 24px rgba(168, 85, 247, 0.2);
       }
       .btn.filter {
@@ -102,7 +102,7 @@
       .stats-summary > div {
         display: flex;
         flex-direction: column;
-        height: 98%;
+        height: 98.2%;
       }
       .stats-grid {
         display: grid;
@@ -167,7 +167,7 @@
         font-size: 12px;
         margin-right: 6px;
       }
-      .stat-badge.atk {
+      .stat-badge.hp {
         background: rgba(255, 107, 107, 0.15);
         border: 1px solid rgba(255, 107, 107, 0.3);
         color: #ff6b6b;
@@ -177,7 +177,7 @@
         border: 1px solid rgba(78, 168, 222, 0.3);
         color: #4ea8de;
       }
-      .stat-badge.hp {
+      .stat-badge.atk {
         background: rgba(168, 85, 247, 0.15);
         border: 1px solid rgba(168, 85, 247, 0.3);
         color: #a855f7;
@@ -229,10 +229,12 @@
         font-size: 13px;
       }
       .action-btn.equip {
-        background: linear-gradient(to right, #ffd700, #ffa500);
-        color: #000;
+        background: linear-gradient(90deg, #3b82f6, #2563eb);
+        color: #e6eef8;
       }
       .action-btn.equip:hover {
+        background: linear-gradient(90deg, #3b82f6, #2563eb);
+        color: #e6eef8;
         transform: scale(1.05);
       }
       .action-btn.unequip {
@@ -278,6 +280,122 @@
         font-size: 13px;
         color: #e6eef8;
       }
+      /* Modal Styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+      }
+      .modal-content {
+        background: #1a1d2e;
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        max-width: 450px;
+        width: 100%;
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.15);
+      }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        flex: 1;
+      }
+      .modal-body {
+        margin-bottom: 20px;
+      }
+      .modal-item-info {
+        background: #252838;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .modal-item-name {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .modal-label {
+        font-size: 13px;
+        color: #9aa3b2;
+        margin-bottom: 8px;
+      }
+      .modal-input {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #e6eef8;
+        font-size: 16px;
+        box-sizing: border-box;
+        transition: all 0.2s;
+      }
+      .modal-input:focus {
+        outline: none;
+        border-color: rgba(255, 215, 0, 0.5);
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .modal-footer {
+        display: flex;
+        gap: 8px;
+      }
+      .modal-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+        border: none;
+        transition: all 0.2s;
+      }
+      .modal-btn.primary {
+        background: linear-gradient(to right, #ffd700, #ffa500);
+        color: #000;
+      }
+      .modal-btn.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+      }
+      .modal-btn.secondary {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #e6eef8;
+      }
+      .modal-btn.secondary:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .notyf__toast {
+        padding: 0px 20px !important; /* 기본 16px → 더 작게 */
+        border-radius: 6px !important; /* 모서리 둥근 정도 */
+        width: auto !important; /* 자동 너비 */
+        max-width: 500px !important; /* 최대 너비 늘리기 */
+        max-height: 100vh !important; /* 높이 최대로 */
+        display: inline-block !important; /* 가로로 늘어나게 */
+        box-shadow: none !important; /* 그림자 삭제 */
+      }
+      .notyf__message {
+        font-size: 15px !important; /* 글씨 크기 줄이기 */
+        line-height: 1.2 !important;
+        display: block !important;
+      }
     </style>
   </head>
   <body>
@@ -285,6 +403,13 @@
       <div id="root"></div>
     </div>
 
+    <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
     <!-- React & ReactDOM (UMD builds) -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -292,100 +417,215 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Demo: InventoryScene converted from TSX -> JS (JSX) for CDN usage -->
     <script type="text/babel">
-      const { useState } = React;
+      const { useState, useEffect } = React;
+      const notyf = new Notyf({ ripple: false });
+
+      function SellModal({ item, onClose, onConfirm }) {
+        const [sellPrice, setSellPrice] = useState(item.sellPrice || "");
+
+        const handleSubmit = () => {
+          if (sellPrice && sellPrice > 0) {
+            onConfirm(item, sellPrice);
+            onClose();
+          }
+        };
+
+        return (
+          <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    background: "linear-gradient(135deg, #ffd700, #ffa500)",
+                    borderRadius: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  💰
+                </div>
+                <div className="modal-title">아이템 판매</div>
+              </div>
+
+              <div className="modal-body">
+                <div className="modal-item-info">
+                  <div className="modal-item-name">{item.name}</div>
+                  <div style={{ fontSize: 12, color: "#9aa3b2" }}>
+                    {item.description}
+                  </div>
+                </div>
+
+                <div className="modal-label">판매 금액</div>
+                <input
+                  type="number"
+                  className="modal-input"
+                  placeholder="판매 금액을 입력하세요"
+                  value={sellPrice}
+                  onChange={(e) => setSellPrice(e.target.value)}
+                  min="1"
+                />
+              </div>
+
+              <div className="modal-footer">
+                <button className="modal-btn secondary" onClick={onClose}>
+                  취소
+                </button>
+                <button
+                  className="modal-btn primary"
+                  onClick={handleSubmit}
+                  disabled={!sellPrice || sellPrice <= 0}
+                >
+                  등록
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       function InventoryScene({ onNavigate }) {
         const [activeFilter, setActiveFilter] = useState("all");
         const [searchQuery, setSearchQuery] = useState("");
+        const [sellModalItem, setSellModalItem] = useState(null);
 
-        const inventoryItems = [
-          {
-            id: 1,
-            name: "화염의 검",
-            type: "weapon",
-            atk: 65,
-            rarity: "legendary",
-            equipped: true,
-            description: "불꽃으로 적을 불태우는 전설의 검",
-            sellPrice: 2500,
-          },
-          {
-            id: 2,
-            name: "다이아몬드 갑옷",
-            type: "armor",
-            def: 80,
-            rarity: "legendary",
-            equipped: true,
-            description: "최고급 다이아몬드로 만든 갑옷",
-            sellPrice: 4000,
-          },
-          {
-            id: 3,
-            name: "체력 포션",
-            type: "consumable",
-            hp: 50,
-            quantity: 12,
-            rarity: "common",
-            description: "HP를 50 회복시킨다",
-            sellPrice: 50,
-          },
-          {
-            id: 4,
-            name: "번개 반지",
-            type: "accessory",
-            atk: 25,
-            rarity: "epic",
-            equipped: false,
-            description: "번개의 힘이 깃든 반지",
-            sellPrice: 1500,
-          },
-          {
-            id: 5,
-            name: "마나 포션",
-            type: "consumable",
-            mp: 30,
-            quantity: 8,
-            rarity: "common",
-            description: "MP를 30 회복시킨다",
-            sellPrice: 40,
-          },
-          {
-            id: 6,
-            name: "암살자의 단검",
-            type: "weapon",
-            atk: 45,
-            rarity: "rare",
-            equipped: false,
-            description: "빠른 공격에 특화된 단검",
-            sellPrice: 1200,
-          },
-          {
-            id: 7,
-            name: "가죽 장갑",
-            type: "armor",
-            def: 15,
-            rarity: "common",
-            equipped: false,
-            description: "기본적인 방어력을 제공",
-            sellPrice: 300,
-          },
-          {
-            id: 8,
-            name: "황금 목걸이",
-            type: "accessory",
-            hp: 30,
-            rarity: "rare",
-            equipped: true,
-            description: "최대 체력을 증가시킨다",
-            sellPrice: 800,
-          },
-        ];
+        const [inventoryItems, setInventoryItems] = useState([]);
+        const [playerStats, setPlayerStats] = useState({});
+        const [myGold, setMyGold] = useState(0);
 
-        const playerStats = {
-          totalAtk: 135,
-          totalDef: 95,
-          totalHp: 250,
-        };
+        // ⭐ 부모 → iframe 메시지 수신
+        useEffect(() => {
+          window.parent.postMessage("INVENTORY_READY", "*");
+          const handler = (event) => {
+            if (event.data?.type === "INVENTORY_DATA") {
+              setInventoryItems(event.data.payload.inventoryItems); // UI 업데이트
+              setPlayerStats(event.data.payload.playerStats); // UI 업데이트
+              setMyGold(event.data.payload.myGold); // UI 업데이트
+            }
+          };
+
+          window.addEventListener("message", handler);
+          return () => window.removeEventListener("message", handler);
+        }, []);
+
+        useEffect(() => {
+          tippy("#enforce-hp-btn", {
+            content: `
+      <span style="display: flex; align-items: center; gap: 6px;">
+        <img src="/assets/icons/coins.png" width="16" height="16" style="vertical-align: middle;" />
+        ${playerStats.totalHp ? playerStats.totalHp * 10 : 0}
+      </span>
+    `,
+            allowHTML: true,
+          });
+          tippy("#enforce-atk-btn", {
+            content: `
+      <span style="display: flex; align-items: center; gap: 6px;">
+        <img src="/assets/icons/coins.png" width="16" height="16" style="vertical-align: middle;" />
+        ${playerStats.totalAtk ? playerStats.totalAtk * 10 : 0}
+      </span>
+    `,
+            allowHTML: true,
+          });
+          tippy("#enforce-def-btn", {
+            content: `
+      <span style="display: flex; align-items: center; gap: 6px;">
+        <img src="/assets/icons/coins.png" width="16" height="16" style="vertical-align: middle;" />
+        ${playerStats.totalDef ? playerStats.totalDef * 10 : 0}
+      </span>
+    `,
+            allowHTML: true,
+          });
+        }, [playerStats]);
+
+        // const inventoryItems = [
+        //   {
+        //     id: 1,
+        //     name: "화염의 검",
+        //     type: "weapon",
+        //     atk: 65,
+        //     equipped: true,
+        //     description: "불꽃으로 적을 불태우는 전설의 검",
+        //   },
+        //   {
+        //     id: 2,
+        //     name: "다이아몬드 갑옷",
+        //     type: "armor",
+        //     def: 80,
+        //     rarity: "legendary",
+        //     equipped: true,
+        //     description: "최고급 다이아몬드로 만든 갑옷",
+        //     sellPrice: 4000,
+        //   },
+        //   {
+        //     id: 3,
+        //     name: "체력 포션",
+        //     type: "consumable",
+        //     hp: 50,
+        //     quantity: 12,
+        //     rarity: "common",
+        //     description: "HP를 50 회복시킨다",
+        //     sellPrice: 50,
+        //   },
+        //   {
+        //     id: 4,
+        //     name: "번개 반지",
+        //     type: "accessory",
+        //     atk: 25,
+        //     rarity: "epic",
+        //     equipped: false,
+        //     description: "번개의 힘이 깃든 반지",
+        //     sellPrice: 1500,
+        //   },
+        //   {
+        //     id: 5,
+        //     name: "마나 포션",
+        //     type: "consumable",
+        //     mp: 30,
+        //     quantity: 8,
+        //     rarity: "common",
+        //     description: "MP를 30 회복시킨다",
+        //     sellPrice: 40,
+        //   },
+        //   {
+        //     id: 6,
+        //     name: "암살자의 단검",
+        //     type: "weapon",
+        //     atk: 45,
+        //     rarity: "rare",
+        //     equipped: false,
+        //     description: "빠른 공격에 특화된 단검",
+        //     sellPrice: 1200,
+        //   },
+        //   {
+        //     id: 7,
+        //     name: "가죽 장갑",
+        //     type: "armor",
+        //     def: 15,
+        //     rarity: "common",
+        //     equipped: false,
+        //     description: "기본적인 방어력을 제공",
+        //     sellPrice: 300,
+        //   },
+        //   {
+        //     id: 8,
+        //     name: "황금 목걸이",
+        //     type: "accessory",
+        //     hp: 30,
+        //     rarity: "rare",
+        //     equipped: true,
+        //     description: "최대 체력을 증가시킨다",
+        //     sellPrice: 800,
+        //   },
+        // ];
+
+        // const playerStats = {
+        //   totalAtk: 135,
+        //   totalDef: 95,
+        //   totalHp: 250,
+        // };
 
         const filterItems = () => {
           let items = inventoryItems;
@@ -413,36 +653,47 @@
 
         const getTypeLabel = (type) => {
           switch (type) {
+            case "hat":
+              return "모자";
+            case "top":
+              return "상의";
+            case "bottom":
+              return "하의";
+            case "shoes":
+              return "신발";
+            case "gloves":
+              return "장갑";
             case "weapon":
               return "무기";
-            case "armor":
-              return "방어구";
-            case "accessory":
-              return "악세서리";
-            case "consumable":
-              return "소비";
             default:
               return type;
           }
+        };
+
+        const handleEquip = (item) => {
+          setInventoryItems((prev) =>
+            prev.map((i) =>
+              i.id === item.id
+                ? { ...i, equipped: true }
+                : i.type === item.type
+                ? { ...i, equipped: false }
+                : i
+            )
+          );
         };
 
         return (
           <div className="card">
             <div className="header">
               <div className="left">
-                <div
+                <img
+                  src="/assets/icons/inventory_icon.png"
+                  alt="인벤토리 아이콘"
                   style={{
-                    width: 32,
-                    height: 32,
-                    background: "linear-gradient(135deg, #a855f7, #6366f1)",
-                    borderRadius: 6,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    width: 18,
+                    height: 18,
                   }}
-                >
-                  🎒
-                </div>
+                />
                 <div className="title">인벤토리</div>
               </div>
               <button
@@ -471,14 +722,27 @@
                     <div className="stat-box-label">체력</div>
                     <div
                       className="stat-box-value"
-                      style={{ color: "#a855f7" }}
+                      style={{ color: "#ff6b6b" }}
                     >
                       {playerStats.totalHp}
                     </div>
                     <button
+                      id="enforce-hp-btn"
                       className="btn"
                       style={{ height: 30, fontSize: 12, marginTop: 0 }}
-                      onClick={() => console.log("체력 강화")}
+                      onClick={() => {
+                        const cost = playerStats.totalHp * 10;
+                        if (myGold < cost) {
+                          notyf.error("골드가 부족하여 강화할 수 없습니다.");
+                          return;
+                        }
+                        notyf.success("체력 강화 완료!");
+                        setMyGold((prev) => prev - cost);
+                        setPlayerStats((prev) => ({
+                          ...prev,
+                          totalHp: prev.totalHp + 1,
+                        }));
+                      }}
                     >
                       강화
                     </button>
@@ -487,14 +751,27 @@
                     <div className="stat-box-label">공격력</div>
                     <div
                       className="stat-box-value"
-                      style={{ color: "#ff6b6b" }}
+                      style={{ color: "#a855f7" }}
                     >
                       {playerStats.totalAtk}
                     </div>
                     <button
+                      id="enforce-atk-btn"
                       className="btn"
                       style={{ height: 30, fontSize: 12, marginTop: 0 }}
-                      onClick={() => console.log("공격력 강화")}
+                      onClick={() => {
+                        const cost = playerStats.totalAtk * 10;
+                        if (myGold < cost) {
+                          notyf.error("골드가 부족하여 강화할 수 없습니다.");
+                          return;
+                        }
+                        notyf.success("공격력 강화 완료!");
+                        setMyGold((prev) => prev - cost);
+                        setPlayerStats((prev) => ({
+                          ...prev,
+                          totalAtk: prev.totalAtk + 1,
+                        }));
+                      }}
                     >
                       강화
                     </button>
@@ -508,9 +785,22 @@
                       {playerStats.totalDef}
                     </div>
                     <button
+                      id="enforce-def-btn"
                       className="btn"
                       style={{ height: 30, fontSize: 12, marginTop: 0 }}
-                      onClick={() => console.log("방어력 강화")}
+                      onClick={() => {
+                        const cost = playerStats.totalDef * 10;
+                        if (myGold < cost) {
+                          notyf.error("골드가 부족하여 강화할 수 없습니다.");
+                          return;
+                        }
+                        notyf.success("방어력 강화 완료!");
+                        setMyGold((prev) => prev - cost);
+                        setPlayerStats((prev) => ({
+                          ...prev,
+                          totalDef: prev.totalDef + 1,
+                        }));
+                      }}
                     >
                       강화
                     </button>
@@ -523,7 +813,14 @@
                       className="stat-box-value"
                       style={{ color: "#ffd700" }}
                     >
-                      💰 12,500G
+                      <img
+                        src="/assets/icons/coins.png"
+                        alt="Gold"
+                        width="20"
+                        height="20"
+                        style={{ verticalAlign: "middle" }}
+                      />{" "}
+                      {myGold}G
                     </div>
                     <div style={{ width: 60 }}></div>
                   </div>
@@ -538,50 +835,31 @@
                   착용 장비
                 </div>
                 <div>
-                  <div className="equipment-slot">
-                    <div className="equipment-slot-label">모자</div>
-                    <div
-                      className="equipment-slot-name"
-                      style={{ color: "#666" }}
-                    >
-                      비어있음
-                    </div>
-                  </div>
-                  <div className="equipment-slot equipped">
-                    <div className="equipment-slot-label">상의</div>
-                    <div className="equipment-slot-name">다이아몬드 갑옷</div>
-                  </div>
-                  <div className="equipment-slot">
-                    <div className="equipment-slot-label">하의</div>
-                    <div
-                      className="equipment-slot-name"
-                      style={{ color: "#666" }}
-                    >
-                      비어있음
-                    </div>
-                  </div>
-                  <div className="equipment-slot">
-                    <div className="equipment-slot-label">신발</div>
-                    <div
-                      className="equipment-slot-name"
-                      style={{ color: "#666" }}
-                    >
-                      비어있음
-                    </div>
-                  </div>
-                  <div className="equipment-slot">
-                    <div className="equipment-slot-label">장갑</div>
-                    <div
-                      className="equipment-slot-name"
-                      style={{ color: "#666" }}
-                    >
-                      비어있음
-                    </div>
-                  </div>
-                  <div className="equipment-slot equipped">
-                    <div className="equipment-slot-label">반지</div>
-                    <div className="equipment-slot-name">황금 목걸이</div>
-                  </div>
+                  {["모자", "상의", "하의", "신발", "장갑", "무기"].map(
+                    (slot) => {
+                      const equippedItem = inventoryItems.find(
+                        (i) => i.equipped && getTypeLabel(i.type) === slot
+                      );
+                      return (
+                        <div
+                          className={
+                            "equipment-slot" + (equippedItem ? " equipped" : "")
+                          }
+                          key={slot}
+                        >
+                          <div className="equipment-slot-label">{slot}</div>
+                          <div
+                            className="equipment-slot-name"
+                            style={{
+                              color: equippedItem ? "#e6eef8" : "#666",
+                            }}
+                          >
+                            {equippedItem ? equippedItem.name : "비어있음"}
+                          </div>
+                        </div>
+                      );
+                    }
+                  )}
                 </div>
               </div>
             </div>
@@ -595,40 +873,66 @@
                 marginBottom: 8,
               }}
             >
-              <div style={{ color: "#9aa3b2", fontSize: 14 }}>
+              <div style={{ color: "#9aa3b2", fontSize: 14, marginLeft: 4 }}>
                 소유하고 있는 아이템
               </div>
 
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <button
-                  className={"btn " + (activeFilter === "all" ? "active" : "")}
+                  className={
+                    "btn filter" + (activeFilter === "all" ? " active" : "")
+                  }
                   onClick={() => setActiveFilter("all")}
                 >
                   전체
                 </button>
                 <button
                   className={
-                    "btn " + (activeFilter === "weapon" ? "active" : "")
+                    "btn filter" + (activeFilter === "hat" ? " active" : "")
+                  }
+                  onClick={() => setActiveFilter("hat")}
+                >
+                  모자
+                </button>
+                <button
+                  className={
+                    "btn filter" + (activeFilter === "top" ? " active" : "")
+                  }
+                  onClick={() => setActiveFilter("top")}
+                >
+                  상의
+                </button>
+                <button
+                  className={
+                    "btn filter" + (activeFilter === "bottom" ? " active" : "")
+                  }
+                  onClick={() => setActiveFilter("bottom")}
+                >
+                  하의
+                </button>
+                <button
+                  className={
+                    "btn filter" + (activeFilter === "shoe" ? " active" : "")
+                  }
+                  onClick={() => setActiveFilter("shoe")}
+                >
+                  신발
+                </button>
+                <button
+                  className={
+                    "btn filter" + (activeFilter === "glove" ? " active" : "")
+                  }
+                  onClick={() => setActiveFilter("glove")}
+                >
+                  장갑
+                </button>
+                <button
+                  className={
+                    "btn filter" + (activeFilter === "weapon" ? " active" : "")
                   }
                   onClick={() => setActiveFilter("weapon")}
                 >
                   무기
-                </button>
-                <button
-                  className={
-                    "btn " + (activeFilter === "armor" ? "active" : "")
-                  }
-                  onClick={() => setActiveFilter("armor")}
-                >
-                  방어구
-                </button>
-                <button
-                  className={
-                    "btn " + (activeFilter === "accessory" ? "active" : "")
-                  }
-                  onClick={() => setActiveFilter("accessory")}
-                >
-                  기타
                 </button>
 
                 <div className="search">
@@ -666,6 +970,9 @@
                       </div>
 
                       <div>
+                        {item.hp && (
+                          <span className="stat-badge hp">+{item.hp} HP</span>
+                        )}
                         {item.atk && (
                           <span className="stat-badge atk">
                             +{item.atk} ATK
@@ -676,36 +983,76 @@
                             +{item.def} DEF
                           </span>
                         )}
-                        {item.hp && (
-                          <span className="stat-badge hp">+{item.hp} HP</span>
-                        )}
-                        {item.quantity && (
-                          <span className="stat-badge hp">
-                            ×{item.quantity}
-                          </span>
-                        )}
                       </div>
 
                       <div style={{ display: "flex", gap: 6 }}>
                         {item.type === "consumable" ? (
                           <button className="action-btn equip">사용</button>
                         ) : item.equipped ? (
-                          <button className="action-btn unequip">해제</button>
+                          // 장착중일 때: 해제 버튼만 표시 (판매 버튼 없음)
+                          <button
+                            className="action-btn unequip"
+                            style={{ width: "118px" }} // 판매 버튼 위치로 오도록 넓게
+                            onClick={() =>
+                              setInventoryItems((prev) =>
+                                prev.map((i) =>
+                                  i.id === item.id
+                                    ? { ...i, equipped: false }
+                                    : i
+                                )
+                              )
+                            }
+                          >
+                            해제
+                          </button>
                         ) : (
-                          <button className="action-btn equip">장착</button>
+                          // 장착 안된 상태: 장착 + 판매 버튼
+                          <>
+                            <button
+                              className="action-btn equip"
+                              onClick={() => {
+                                handleEquip(item);
+                                setSellModalItem(null);
+                              }}
+                            >
+                              장착
+                            </button>
+                            <button
+                              className="action-btn sell"
+                              onClick={() => setSellModalItem(item)}
+                            >
+                              판매
+                            </button>
+                          </>
                         )}
-                        <button className="action-btn sell">판매</button>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="empty-state">
-                  <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
                   <div>아이템이 없습니다</div>
                 </div>
               )}
             </div>
+
+            {/* Sell Modal */}
+            {sellModalItem && (
+              <SellModal
+                item={sellModalItem}
+                onClose={() => setSellModalItem(null)}
+                onConfirm={(item, price) => {
+                  // 아이템 제거
+                  setInventoryItems((prev) =>
+                    prev.filter((i) => i.id !== item.id)
+                  );
+                  setSellModalItem(null);
+                  notyf.success(
+                    `${item.name}이(가) ${price}G에 거래소에 등록되었습니다.`
+                  );
+                }}
+              />
+            )}
           </div>
         );
       }
