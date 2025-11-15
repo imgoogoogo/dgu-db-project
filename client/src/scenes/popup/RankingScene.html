@@ -174,7 +174,7 @@
 
           // 검색어 필터
           const searchFiltered = list.filter((r) =>
-            r.nickname.toLowerCase().includes(searchTerm.toLowerCase())
+            r.nickName.toLowerCase().includes(searchTerm.toLowerCase())
           );
 
           // 전체 랭킹 탭
@@ -270,7 +270,7 @@
                       내 랭킹
                     </div>
                     <div style={{ fontSize: 16 }}>
-                      {rankings.myRanking.nickname}
+                      {rankings.myRanking.nickName}
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 70 }}>
@@ -313,7 +313,7 @@
 
                   return (
                     <div
-                      key={`${p.rank}_${p.nickname}`}
+                      key={`${p.rank}_${p.nickName}`}
                       className={"row " + (p.rank % 2 ? "odd" : "")}
                     >
                       <div style={{ display: "flex", alignItems: "center" }}>
@@ -328,7 +328,7 @@
                       </div>
 
                       <div style={{ paddingLeft: 6 }}>
-                        <span>{p.nickname}</span>
+                        <span>{p.nickName}</span>
                       </div>
 
                       <div style={{ textAlign: "center" }}>
