@@ -94,6 +94,11 @@
         align-items: center;
         margin-bottom: 16px;
       }
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9aa3b2;
+      }
       .item-card {
         background: #252838;
         border-radius: 12px;
@@ -116,6 +121,10 @@
         font-size: 16px;
         font-weight: 500;
         margin-bottom: 6px;
+      }
+      .item-type {
+        font-size: 12px;
+        color: #9aa3b2;
       }
       .stat-badge {
         display: inline-block;
@@ -252,12 +261,32 @@
               setMyGold(event.data.payload.myGold); // UI 업데이트
               setAuctionItems(event.data.payload.auctionItems); // UI 업데이트
               setMySales(event.data.payload.mySales); // UI 업데이트
+              window.parent.postMessage("AUCTION_RENDER_COMPLETE", "*");
             }
           };
 
           window.addEventListener("message", handler);
           return () => window.removeEventListener("message", handler);
         }, []);
+
+        const getTypeLabel = (type) => {
+          switch (type) {
+            case "hat":
+              return "모자";
+            case "top":
+              return "상의";
+            case "bottom":
+              return "하의";
+            case "shoes":
+              return "신발";
+            case "gloves":
+              return "장갑";
+            case "weapon":
+              return "무기";
+            default:
+              return type;
+          }
+        };
 
         // 구매 버튼 클릭 시 아이템 제거
         const handleBuy = (auctionItem) => {
@@ -418,9 +447,10 @@
                 <button
                   className="btn"
                   onClick={() => {
-                    window.parent.document.getElementById(
-                      "react-ui"
-                    ).style.display = "none";
+                    const iframe =
+                      window.parent.document.getElementById("react-ui");
+                    iframe.src = "about:blank"; // 완전 초기화
+                    iframe.style.visibility = "hidden";
                   }}
                 >
                   닫기
@@ -540,8 +570,8 @@
                     <div key={item.id} className="item-card">
                       <div className="item-content">
                         <div>
-                          <div className="item-name">{item.name}</div>
-                          <div>
+                          <div className="item-name">
+                            <span style={{ marginRight: 10 }}>{item.name}</span>
                             {item.hp && (
                               <span className="stat-badge hp">
                                 +{item.hp} HP
@@ -558,12 +588,29 @@
                               </span>
                             )}
                           </div>
+                          <div>
+                            <span className="item-type">
+                              {getTypeLabel(item.type)}
+                            </span>
+                          </div>
                         </div>
 
                         <div className="seller-info">
                           <div>판매자: {item.seller}</div>
                           <div>
-                            🕐 {getTimeSince(new Date(item.time).getTime())}
+                            <img
+                              src="/assets/icons/flatclock.png"
+                              alt="clock"
+                              width="11"
+                              height="11"
+                              style={{
+                                verticalAlign: "middle",
+                                marginRight: 7,
+                              }}
+                            />
+                            <span style={{ verticalAlign: "middle" }}>
+                              {getTimeSince(new Date(item.time).getTime())}
+                            </span>
                           </div>
                         </div>
 
@@ -602,42 +649,87 @@
                 ></div>
 
                 <div>
-                  {mySales.map((item) => (
-                    <div key={item.id} className="item-card">
-                      <div className="item-content">
-                        <div>
-                          <div className="item-name">{item.name}</div>
+                  {mySales.length > 0 ? (
+                    mySales.map((item) => (
+                      <div key={item.id} className="item-card">
+                        <div className="item-content">
                           <div>
-                            {item.def && (
-                              <span className="stat-badge def">
-                                +{item.def} DEF
+                            <div className="item-name">
+                              <span style={{ marginRight: 10 }}>
+                                {item.name}
                               </span>
-                            )}
+                              {item.hp && (
+                                <span className="stat-badge hp">
+                                  +{item.hp} HP
+                                </span>
+                              )}
+                              {item.atk && (
+                                <span className="stat-badge atk">
+                                  +{item.atk} ATK
+                                </span>
+                              )}
+                              {item.def && (
+                                <span className="stat-badge def">
+                                  +{item.def} DEF
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <span className="item-type">
+                                {getTypeLabel(item.type)}
+                              </span>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="seller-info">
-                          🕐 {getTimeSince(new Date(item.time).getTime())}
-                        </div>
-
-                        <div className="price">
-                          <div className="price-label">판매가</div>
-                          <div className="price-value">
-                            {item.price.toLocaleString()}G
+                          <div className="seller-info">
+                            <img
+                              src="/assets/icons/flatclock.png"
+                              alt="clock"
+                              width="11"
+                              height="11"
+                              style={{
+                                verticalAlign: "middle",
+                                marginRight: 7,
+                              }}
+                            />
+                            <span style={{ verticalAlign: "middle" }}>
+                              {getTimeSince(new Date(item.time).getTime())}
+                            </span>
                           </div>
-                        </div>
 
-                        <div style={{ textAlign: "right" }}>
-                          <button
-                            className="cancel-btn"
-                            onClick={() => handleCancelSale(item.id)}
-                          >
-                            판매 취소
-                          </button>
+                          <div className="price">
+                            <div className="price-label">판매가</div>
+                            <div className="price-value">
+                              {item.price.toLocaleString()}G
+                            </div>
+                          </div>
+
+                          <div style={{ textAlign: "right" }}>
+                            <button
+                              className="cancel-btn"
+                              onClick={() => handleCancelSale(item.id)}
+                            >
+                              판매 취소
+                            </button>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="empty-state">
+                      <img
+                        src="/assets/icons/inventory_hide.png"
+                        alt="Gold"
+                        width="23"
+                        height="23"
+                        style={{ verticalAlign: "middle" }}
+                      />
+                      {"   "}
+                      <span style={{ verticalAlign: "middle" }}>
+                        등록된 아이템이 없습니다.
+                      </span>
                     </div>
-                  ))}
+                  )}
                 </div>
               </>
             )}

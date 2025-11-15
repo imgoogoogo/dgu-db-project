@@ -137,6 +137,7 @@
           const handler = (event) => {
             if (event.data?.type === "RANKING_DATA") {
               setRankings(event.data.payload); // UI 업데이트
+              window.parent.postMessage("RANKING_RENDER_COMPLETE", "*");
             }
           };
 
@@ -241,9 +242,10 @@
                 <button
                   className="btn"
                   onClick={() => {
-                    window.parent.document.getElementById(
-                      "react-ui"
-                    ).style.display = "none";
+                    const iframe =
+                      window.parent.document.getElementById("react-ui");
+                    iframe.src = "about:blank"; // 완전 초기화
+                    iframe.style.visibility = "hidden";
                   }}
                 >
                   닫기

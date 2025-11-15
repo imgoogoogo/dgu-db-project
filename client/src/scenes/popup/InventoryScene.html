@@ -147,7 +147,7 @@
       }
       .item-content {
         display: grid;
-        grid-template-columns: 1fr 250px 150px;
+        grid-template-columns: 1fr 150px;
         gap: 16px;
         align-items: center;
       }
@@ -495,21 +495,6 @@
         const [playerStats, setPlayerStats] = useState({});
         const [myGold, setMyGold] = useState(0);
 
-        // ⭐ 부모 → iframe 메시지 수신
-        useEffect(() => {
-          window.parent.postMessage("INVENTORY_READY", "*");
-          const handler = (event) => {
-            if (event.data?.type === "INVENTORY_DATA") {
-              setInventoryItems(event.data.payload.inventoryItems); // UI 업데이트
-              setPlayerStats(event.data.payload.playerStats); // UI 업데이트
-              setMyGold(event.data.payload.myGold); // UI 업데이트
-            }
-          };
-
-          window.addEventListener("message", handler);
-          return () => window.removeEventListener("message", handler);
-        }, []);
-
         useEffect(() => {
           tippy("#enforce-hp-btn", {
             content: `
@@ -539,6 +524,22 @@
             allowHTML: true,
           });
         }, [playerStats]);
+
+        // ⭐ 부모 → iframe 메시지 수신
+        useEffect(() => {
+          window.parent.postMessage("INVENTORY_READY", "*");
+          const handler = (event) => {
+            if (event.data?.type === "INVENTORY_DATA") {
+              setInventoryItems(event.data.payload.inventoryItems); // UI 업데이트
+              setPlayerStats(event.data.payload.playerStats); // UI 업데이트
+              setMyGold(event.data.payload.myGold); // UI 업데이트
+              window.parent.postMessage("INVENTORY_RENDER_COMPLETE", "*");
+            }
+          };
+          window.addEventListener("message", handler);
+
+          return () => window.removeEventListener("message", handler);
+        }, []);
 
         // const inventoryItems = [
         //   {
@@ -699,9 +700,10 @@
               <button
                 className="btn"
                 onClick={() => {
-                  window.parent.document.getElementById(
-                    "react-ui"
-                  ).style.display = "none";
+                  const iframe =
+                    window.parent.document.getElementById("react-ui");
+                  iframe.src = "about:blank"; // 완전 초기화
+                  iframe.style.visibility = "hidden";
                 }}
               >
                 닫기
@@ -914,7 +916,7 @@
                   className={
                     "btn filter" + (activeFilter === "shoe" ? " active" : "")
                   }
-                  onClick={() => setActiveFilter("shoe")}
+                  onClick={() => setActiveFilter("shoes")}
                 >
                   신발
                 </button>
@@ -957,7 +959,20 @@
                     <div className="item-content">
                       <div>
                         <div className="item-name">
-                          {item.name}
+                          <span style={{ marginRight: 10 }}>{item.name}</span>
+                          {item.hp && (
+                            <span className="stat-badge hp">+{item.hp} HP</span>
+                          )}
+                          {item.atk && (
+                            <span className="stat-badge atk">
+                              +{item.atk} ATK
+                            </span>
+                          )}
+                          {item.def && (
+                            <span className="stat-badge def">
+                              +{item.def} DEF
+                            </span>
+                          )}
                           {item.equipped && (
                             <span className="equipped-badge">장착중</span>
                           )}
@@ -968,23 +983,6 @@
                           </span>
                         </div>
                       </div>
-
-                      <div>
-                        {item.hp && (
-                          <span className="stat-badge hp">+{item.hp} HP</span>
-                        )}
-                        {item.atk && (
-                          <span className="stat-badge atk">
-                            +{item.atk} ATK
-                          </span>
-                        )}
-                        {item.def && (
-                          <span className="stat-badge def">
-                            +{item.def} DEF
-                          </span>
-                        )}
-                      </div>
-
                       <div style={{ display: "flex", gap: 6 }}>
                         {item.type === "consumable" ? (
                           <button className="action-btn equip">사용</button>
@@ -1031,7 +1029,17 @@
                 ))
               ) : (
                 <div className="empty-state">
-                  <div>아이템이 없습니다</div>
+                  <img
+                    src="/assets/icons/inventory_hide.png"
+                    alt="Gold"
+                    width="23"
+                    height="23"
+                    style={{ verticalAlign: "middle" }}
+                  />
+                  {"   "}
+                  <span style={{ verticalAlign: "middle" }}>
+                    아이템이 없습니다.
+                  </span>
                 </div>
               )}
             </div>

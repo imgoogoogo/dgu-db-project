@@ -69,7 +69,7 @@ export default class MainScene extends Phaser.Scene {
       .image(-spacing, smallButtonY, "inventory_button")
       .setInteractive({ useHandCursor: true })
       .setScale(baseScale);
-    inventoryBtn.on("pointerdown", async () => {
+    inventoryBtn.on("pointerdown", () => {
       // 더미 인벤토리 데이터
       const inventoryData = {
         myGold: 1500,
@@ -101,8 +101,12 @@ export default class MainScene extends Phaser.Scene {
         ],
       };
 
+      // TODO: 로딩 화면 구현
+      const loader = document.getElementById("phaser-loader");
+      loader.style.visibility = "visible";
+
+      iframe.style.visibility = "hidden";
       iframe.src = "src/scenes/popup/InventoryScene.html";
-      iframe.style.display = "block";
 
       // iframe에서 READY 메시지를 기다림
       const handleReady = (event) => {
@@ -111,7 +115,11 @@ export default class MainScene extends Phaser.Scene {
             { type: "INVENTORY_DATA", payload: inventoryData },
             "*"
           );
+        }
+        if (event.data === "INVENTORY_RENDER_COMPLETE") {
           window.removeEventListener("message", handleReady);
+          loader.style.visibility = "hidden";
+          iframe.style.visibility = "visible";
         }
       };
 
@@ -191,8 +199,12 @@ export default class MainScene extends Phaser.Scene {
         ],
       };
 
+      // TODO: 로딩 화면 구현
+      const loader = document.getElementById("phaser-loader");
+      loader.style.visibility = "visible";
+
+      iframe.style.visibility = "hidden";
       iframe.src = "src/scenes/popup/RankingScene.html";
-      iframe.style.display = "block";
 
       // iframe에서 READY 메시지를 기다림
       const handleReady = (event) => {
@@ -201,7 +213,11 @@ export default class MainScene extends Phaser.Scene {
             { type: "RANKING_DATA", payload: rankingData },
             "*"
           );
+        }
+        if (event.data === "RANKING_RENDER_COMPLETE") {
           window.removeEventListener("message", handleReady);
+          loader.style.visibility = "hidden";
+          iframe.style.visibility = "visible";
         }
       };
 
@@ -244,8 +260,12 @@ export default class MainScene extends Phaser.Scene {
         ],
       };
 
+      // TODO: 로딩 화면 구현
+      const loader = document.getElementById("phaser-loader");
+      loader.style.visibility = "visible";
+
+      iframe.style.visibility = "hidden";
       iframe.src = "src/scenes/popup/AuctionScene.html";
-      iframe.style.display = "block";
 
       // iframe에서 READY 메시지를 기다림
       const handleReady = (event) => {
@@ -254,7 +274,11 @@ export default class MainScene extends Phaser.Scene {
             { type: "AUCTION_DATA", payload: auctionData },
             "*"
           );
+        }
+        if (event.data === "AUCTION_RENDER_COMPLETE") {
           window.removeEventListener("message", handleReady);
+          loader.style.visibility = "hidden";
+          iframe.style.visibility = "visible";
         }
       };
 
