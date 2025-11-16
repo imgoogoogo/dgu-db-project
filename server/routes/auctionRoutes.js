@@ -1,18 +1,22 @@
 // server/routes/auctionRoutes.js
 import express from "express";
 import { verifyToken } from "../middlewares/auth.js";
+
 import {
   listAuction,
-  sellAuction,
   buyAuction,
-  cancelAuction,
+  cancelAuction
 } from "../controllers/auctionController.js";
 
 const router = express.Router();
 
-router.get("/", listAuction);                          // 조회는 공개
-router.post("/sell", verifyToken, sellAuction);        // 판매: JWT 필요
-router.post("/buy", verifyToken, buyAuction);          // 구매: JWT 필요
-router.delete("/cancel/:auctionId", verifyToken, cancelAuction); // 취소: JWT
+// ⭐ 경매 목록 조회
+router.get("/", listAuction);
+
+// ⭐ 경매 구매
+router.post("/buy", verifyToken, buyAuction);
+
+// ⭐ 경매 취소
+router.post("/cancel", verifyToken, cancelAuction);
 
 export default router;

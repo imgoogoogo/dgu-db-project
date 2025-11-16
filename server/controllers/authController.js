@@ -1,74 +1,101 @@
 // server/controllers/authController.js
+import axios from "axios";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-key";
+// 1) 카카오 로그인 URL로 리다이렉트
+export const kakaoLogin = (req, res) => {
+  const url =
+    `https://kauth.kakao.com/oauth/authorize?response_type=code` +
+    `&client_id=${process.env.KAKAO_REST_API_KEY}` +
+    `&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
 
-// POST /api/auth/login  { kakaoToken }
-export const login = async (req, res) => {
-  const { kakaoToken } = req.body;
+  res.redirect(url);
+};
 
-  if (!kakaoToken) {
-    return res.status(400).json({ success: false, message: "kakaoToken 필요" });
-  }
-
-  const loginId = "kakao:" + kakaoToken; // 실제 서비스에서는 카카오 프로필 기반으로 변경
-
+// 2) 카카오 callback 처리
+export const kakaoCallback = async (req, res) => {
   try {
-    // 1) accounts 조회 or 생성
-    const [accRows] = await pool.query(
-      "SELECT account_id FROM accounts WHERE login_id = ?",
-      [loginId]
+    const { code } = req.query;
+
+    // code → access_token
+    const tokenRes = await axios.post(
+      "https://kauth.kakao.com/oauth/token",
+      null,
+      {
+        params: {
+          grant_type: "authorization_code",
+          client_id: process.env.KAKAO_REST_API_KEY,
+          redirect_uri: process.env.KAKAO_REDIRECT_URI,
+          code,
+        },
+      }
+    );
+
+    const accessToken = tokenRes.data.access_token;
+
+    // access_token → 사용자 정보
+    const userRes = await axios.get("https://kapi.kakao.com/v2/user/me", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const kakaoId = userRes.data.id;
+    const nickname = userRes.data.kakao_account.profile.nickname;
+
+    // 3) DB에서 계정 조회 또는 생성
+    const [rows] = await pool.query(
+      "SELECT * FROM accounts WHERE login_id = ?",
+      [`kakao:${kakaoId}`]
     );
 
     let accountId;
-    if (accRows.length === 0) {
-      const [result] = await pool.query(
-        "INSERT INTO accounts (login_id, password, banned, create_date) VALUES (?, '', 0, NOW())",
-        [loginId]
+
+    if (rows.length === 0) {
+      // 신규 계정 생성
+      const result = await pool.query(
+        "INSERT INTO accounts (login_id) VALUES (?)",
+        [`kakao:${kakaoId}`]
       );
-      accountId = result.insertId;
+      accountId = result[0].insertId;
+
+      // 첫 캐릭터 자동 생성
+      await pool.query(
+        "INSERT INTO characters (account_id, name) VALUES (?, ?)",
+        [accountId, nickname]
+      );
     } else {
-      accountId = accRows[0].account_id;
+      accountId = rows[0].account_id;
     }
 
-    // 2) characters 조회 or 기본 캐릭 생성
-    const [chrRows] = await pool.query(
-      "SELECT char_id, name FROM characters WHERE account_id = ? LIMIT 1",
+    // 캐릭터 조회
+    const [chr] = await pool.query(
+      "SELECT char_id, name FROM characters WHERE account_id = ?",
       [accountId]
     );
 
-    let charId;
-    let name;
-    if (chrRows.length === 0) {
-      const defaultName = "Survivor";
-      const [cResult] = await pool.query(
-        "INSERT INTO characters (account_id, name, hp, atk, def, gold, max_stage) VALUES (?, ?, 100, 10, 5, 0, 1)",
-        [accountId, defaultName]
-      );
-      charId = cResult.insertId;
-      name = defaultName;
-    } else {
-      charId = chrRows[0].char_id;
-      name = chrRows[0].name;
-    }
+    const character = chr[0];
 
-    // 3) JWT 발급
+    // 4) JWT 발급
     const token = jwt.sign(
-      { account_id: accountId, char_id: charId, name },
-      JWT_SECRET,
-      { expiresIn: "12h" }
+      {
+        account_id: accountId,
+        char_id: character.char_id,
+        login_id: `kakao:${kakaoId}`,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
-    res.json({ success: true, data: { playerId: charId, jwt: token } });
+    res.json({
+      success: true,
+      jwt: token,
+      player: character,
+    });
+
   } catch (err) {
-    console.error("login error:", err);
+    console.error(err);
     res.status(500).json({ success: false, message: err.message });
   }
-};
-
-// POST /api/auth/logout
-export const logout = async (_req, res) => {
-  // 서버에 세션 저장 안 하므로 클라이언트에서 토큰만 버리면 됨
-  res.json({ success: true });
 };

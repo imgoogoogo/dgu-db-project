@@ -3,6 +3,8 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 
 // ESM용 __dirname 생성
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +20,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 // 📌 정적 파일 (client 폴더)
 app.use(express.static(path.join(__dirname, "client")));
@@ -37,7 +40,7 @@ import gameRoutes from "./server/routes/gameRoutes.js";
 // ----------------------------------------------
 // 📌 라우터 등록
 // ----------------------------------------------
-app.use("/api/auth", authRoutes);          // 로그인/로그아웃
+app.use("/api/auth", authRoutes);        // 로그인/로그아웃
 app.use("/api/player", playerRoutes);      // 캐릭터 등록/스탯 강화
 app.use("/api/inventory", inventoryRoutes);// 인벤토리 조회
 app.use("/api/ranking", rankRoutes);       // 랭킹 조회

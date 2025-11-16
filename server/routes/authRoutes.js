@@ -1,10 +1,10 @@
 // server/routes/authRoutes.js
 import express from "express";
-import { login, logout } from "../controllers/authController.js";
+import { kakaoLogin, kakaoCallback } from "../controllers/authController.js";
 
 const router = express.Router();
 
-router.post("/login", login);
-router.post("/logout", logout);
+router.get("/kakao/login", kakaoLogin);
+router.get("/kakao/callback", kakaoCallback);
 
 export default router;
