@@ -1,4 +1,3 @@
-import DataManager from "../utils/DataManager.js";
 import HpBar from "../ui/HpBar.js";
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
@@ -6,6 +5,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     super(scene, x, y, texture);
     scene.add.existing(this);
     scene.physics.add.existing(this);
+
+    this.gameData = scene.gameData;
 
     // 초기 애니메이션 및 물리 속성 설정
     this.anims.play("idle", true);
@@ -28,8 +29,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.hpBar = new HpBar(scene, this.x, this.y - this.height / 2, 40, 5);
 
     // player 속성 설정
-    this.hp = 100;
-    this.speed = 200;
+    this.hp = this.gameData.playerCurrentHp;
+    this.speed = this.gameData.playerSpeed;
   }
 
   preUpdate(time, delta) {

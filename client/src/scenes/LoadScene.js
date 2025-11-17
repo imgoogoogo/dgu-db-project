@@ -34,9 +34,33 @@ export default class LoadScene extends Phaser.Scene {
       frameWidth: 128,
       frameHeight: 128,
     });
-    this.load.spritesheet("monster", "monster/Zombie_1/Walk.png", {
+    this.load.spritesheet("monster1", "monster/Zombie_1/Walk.png", {
       frameWidth: 128,
       frameHeight: 128,
+    });
+    this.load.spritesheet("monster2", "monster/Zombie_2/Walk.png", {
+      frameWidth: 128,
+      frameHeight: 128,
+    });
+    this.load.spritesheet("monster3", "monster/Zombie_3/Walk.png", {
+      frameWidth: 128,
+      frameHeight: 128,
+    });
+    this.load.spritesheet("monster4", "monster/Zombie_4/Walk.png", {
+      frameWidth: 128,
+      frameHeight: 128,
+    });
+    this.load.spritesheet("monster5", "monster/Zombie_5/Walk.png", {
+      frameWidth: 96,
+      frameHeight: 96,
+    });
+    this.load.spritesheet("monster6", "monster/Zombie_6/Walk.png", {
+      frameWidth: 96,
+      frameHeight: 96,
+    });
+    this.load.spritesheet("monster7", "monster/Zombie_7/Walk.png", {
+      frameWidth: 96,
+      frameHeight: 96,
     });
     this.load.spritesheet("coin", "Coin_Gems/MonedaD.png", {
       frameWidth: 16,
@@ -62,8 +86,44 @@ export default class LoadScene extends Phaser.Scene {
       repeat: -1,
     });
     this.anims.create({
-      key: "monster",
-      frames: this.anims.generateFrameNumbers("monster"),
+      key: "monster1",
+      frames: this.anims.generateFrameNumbers("monster1"),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "monster2",
+      frames: this.anims.generateFrameNumbers("monster2"),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "monster3",
+      frames: this.anims.generateFrameNumbers("monster3"),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "monster4",
+      frames: this.anims.generateFrameNumbers("monster4"),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "monster5",
+      frames: this.anims.generateFrameNumbers("monster5"),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "monster6",
+      frames: this.anims.generateFrameNumbers("monster6"),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "monster7",
+      frames: this.anims.generateFrameNumbers("monster7"),
       frameRate: 8,
       repeat: -1,
     });

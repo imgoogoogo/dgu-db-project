@@ -1,11 +1,9 @@
-import GameData from "../data/GameData.js";
 import DataManager from "../utils/DataManager.js";
 
 export default class GameManager {
   constructor(scene) {
     this.scene = scene;
-    this.gameData = new GameData();
-    this.gameData.reset();
+    this.gameData = this.scene.gameData;
 
     // 첫 스테이지를 시작합니다.
     this.initStage(1);
@@ -15,10 +13,17 @@ export default class GameManager {
   initStage(stage) {
     this.gameData.setStage(stage);
     this.scene.monsterManager.stopEvent();
-    this.scene.monsterManager.startEvent(1000); // 1초 간격
+    console.log(this.gameData.getMonsterSpawnDelay());
+    this.scene.monsterManager.startEvent(this.gameData.getMonsterSpawnDelay());
 
     // UI 업데이트
     this.updateAllUI();
+
+    // 스테이지 시작 메시지 출력
+    this.scene.chatManager.addMessage(
+      `=== 스테이지 ${stage} 시작 ===`,
+      "#ffff00ff"
+    );
   }
 
   // 플레이어가 몬스터와 충돌했을 때 호출될 메소드
@@ -37,6 +42,11 @@ export default class GameManager {
 
   // 총알이 몬스터와 충돌했을 때 호출될 메소드
   onBulletHitMonster(bullet, monster) {
+    const damage =
+      this.gameData.gameDataSet.charInfo.atk * (100 / (100 + monster.def));
+    monster.hp -= damage;
+    if (monster.hp > 0) return;
+
     // 충돌한 총알과 몬스터를 비활성화합니다.
     this.scene.bulletManager.removeBullet(bullet);
     this.scene.monsterManager.removeMonster(monster);

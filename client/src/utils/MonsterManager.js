@@ -36,10 +36,39 @@ export default class MonsterManager {
       outerRectangle,
       innerRectangle
     );
-    const monster = this.monsters.get(spawnPoint.x, spawnPoint.y, "monster");
+
+    const monsters = this.scene.gameData.gameDataSet.monsters;
+    const rand = Math.random() * 100;
+    let acc = 0;
+    let selected = monsters[0]; // 기본값
+
+    for (const m of monsters) {
+      acc += m.chance;
+      if (rand < acc) {
+        selected = m;
+        break;
+      }
+    }
+    const monsterType = selected.id;
+    const monsterInfo = selected;
+
+    const monster = this.monsters.get(
+      spawnPoint.x,
+      spawnPoint.y,
+      `monster${monsterType}`,
+      monsterInfo.hp,
+      monsterInfo.atk,
+      monsterInfo.def,
+      monsterInfo.speed
+    );
 
     // 2. ⭐️ 몬스터를 성공적으로 가져왔다면, 즉시 활성화하고 보이게 만듭니다.
     if (monster) {
+      // 객체가 재사용될 수 있으므로 항상 값 초기화!
+      monster.hp = monsterInfo.hp;
+      monster.atk = monsterInfo.atk;
+      monster.def = monsterInfo.def;
+      monster.speed = monsterInfo.speed;
       monster.setActive(true);
       monster.setVisible(true);
       monster.body.enable = true;

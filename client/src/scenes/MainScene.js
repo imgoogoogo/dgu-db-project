@@ -8,6 +8,7 @@ export default class MainScene extends Phaser.Scene {
   create() {
     const { width: sw, height: sh } = this.scale;
     const iframe = document.getElementById("react-ui");
+    const loader = document.getElementById("phaser-loader");
 
     // --- 흐린 검은색 오버레이 추가 ---
     const overlay = this.add.rectangle(sw / 2, sh / 2, sw, sh, 0x000000, 0.3);
@@ -47,7 +48,9 @@ export default class MainScene extends Phaser.Scene {
       .image(0, 0, "play_button")
       .setInteractive({ useHandCursor: true })
       .setScale(baseScale);
-    playBtn.on("pointerdown", () => this.scene.start("PlayScene"));
+    playBtn.on("pointerdown", () => {
+      this.scene.start("PlayScene");
+    });
     menuContainer.add(playBtn);
 
     // 하단 버튼 위치 계산
@@ -102,7 +105,6 @@ export default class MainScene extends Phaser.Scene {
       };
 
       // TODO: 로딩 화면 구현
-      const loader = document.getElementById("phaser-loader");
       loader.style.visibility = "visible";
 
       iframe.style.visibility = "hidden";
@@ -201,7 +203,6 @@ export default class MainScene extends Phaser.Scene {
       };
 
       // TODO: 로딩 화면 구현
-      const loader = document.getElementById("phaser-loader");
       loader.style.visibility = "visible";
 
       iframe.style.visibility = "hidden";
@@ -262,7 +263,6 @@ export default class MainScene extends Phaser.Scene {
       };
 
       // TODO: 로딩 화면 구현
-      const loader = document.getElementById("phaser-loader");
       loader.style.visibility = "visible";
 
       iframe.style.visibility = "hidden";
@@ -302,7 +302,7 @@ export default class MainScene extends Phaser.Scene {
     });
 
     // 리사이즈 대응
-    this.scale.on("resize", (gameSize) => {
+    const handleResize = (gameSize) => {
       const { width, height } = gameSize;
       if (this.backgroundTile) {
         this.backgroundTile
@@ -312,6 +312,10 @@ export default class MainScene extends Phaser.Scene {
       overlay.setPosition(width / 2, height / 2).setSize(width, height);
       menuContainer.setPosition(width / 2, height * 0.55);
       loginBtn.setPosition(width / 2, height * 0.6);
+    };
+    this.scale.on("resize", handleResize);
+    this.events.on("shutdown", () => {
+      this.scale.off("resize", handleResize);
     });
   }
 
