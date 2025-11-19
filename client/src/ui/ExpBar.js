@@ -18,8 +18,8 @@ export default class ExpBar extends Phaser.GameObjects.Graphics {
     // 레벨 텍스트 생성
     this.levelText = scene.add
       .text(this.barWidth - 10, this.y + this.barHeight + 5, `Lv. 1`, {
-        fontFamily: "Arial",
-        fontSize: "18px",
+        fontFamily: "Pixellari",
+        fontSize: "25px",
         fill: "#ffffff",
         stroke: "#000000",
         strokeThickness: 4,

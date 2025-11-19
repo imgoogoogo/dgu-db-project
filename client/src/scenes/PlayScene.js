@@ -4,6 +4,7 @@ import BulletManager from "../utils/BulletManager.js";
 import ItemManager from "../utils/ItemManager.js";
 import GameManager from "../utils/GameManager.js";
 import ChatManager from "../utils/ChatManager.js";
+import DamagePopupManager from "../utils/DamagePopupManager.js";
 import ExpBar from "../ui/ExpBar.js";
 import remainMonster from "../ui/RemainMonster.js";
 import GameData from "../data/GameData.js";
@@ -46,6 +47,7 @@ export default class PlayScene extends Phaser.Scene {
     this.monsterManager = new MonsterManager(this);
     this.bulletManager = new BulletManager(this);
     this.itemManager = new ItemManager(this);
+    this.DamagePopupManager = new DamagePopupManager(this);
     this.gameManager = new GameManager(this);
 
     this.chatManager.addMessage("게임 시작!", "#00ff00ff", 1000);

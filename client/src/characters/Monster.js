@@ -9,16 +9,37 @@ export default class Monster extends Phaser.Physics.Arcade.Sprite {
     this.def = def;
     this.speed = speed;
 
+    this.isKnockback = false;
+    this.knockbackTimer = 0;
+
     this.anims.play(texture, true);
     this.body.setSize(40, 70);
     this.body.setOffset(44, 58);
+    this.setOrigin(0.5, 0.5);
 
     this.player = scene.player; // 씬의 플레이어 객체를 참조
   }
 
   preUpdate(time, delta) {
     super.preUpdate(time, delta);
+
+    // 넉백 중이면 타이머 감소
+    if (this.isKnockback) {
+      this.knockbackTimer -= delta;
+      if (this.knockbackTimer <= 0) {
+        this.isKnockback = false;
+      } else {
+        return; // 넉백 중에는 move() 실행 안 함
+      }
+    }
+
     this.move();
+  }
+
+  applyKnockback(vx, vy, duration = 200) {
+    this.setVelocity(vx, vy);
+    this.isKnockback = true;
+    this.knockbackTimer = duration;
   }
 
   move() {

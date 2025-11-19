@@ -55,7 +55,14 @@ export default class ItemManager {
     } else if (item instanceof Diamond) {
       this.diamonds.killAndHide(item);
     }
-    item.body.enable = false;
+    if (item.body) {
+      item.body.enable = false; // 충돌 비활성화
+      item.body.setVelocity(0, 0); // 움직임 멈춤
+    }
+    item.setActive(false);
+    item.setVisible(false);
+    item.x = -1000;
+    item.y = -1000;
   }
 
   /**

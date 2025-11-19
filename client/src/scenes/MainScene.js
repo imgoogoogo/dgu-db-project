@@ -1,3 +1,5 @@
+import PopupScene from "./PopupScene.js";
+
 export default class MainScene extends Phaser.Scene {
   constructor() {
     super("MainScene");
@@ -6,6 +8,8 @@ export default class MainScene extends Phaser.Scene {
   preload() {}
 
   create() {
+    this.scene.launch("PopupScene");
+
     const { width: sw, height: sh } = this.scale;
     const iframe = document.getElementById("react-ui");
     const loader = document.getElementById("phaser-loader");

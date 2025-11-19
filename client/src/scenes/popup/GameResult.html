@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Game Result Scene (CDN JS Demo)</title>
+    <style>
+      /* 최소 스타일 - Tailwind를 사용하지 않는 환경을 위해 간단하게 만듭니다. */
+      body {
+        background: #0f1724;
+        color: #e6eef8;
+        font-family: Inter, system-ui, -apple-system, Roboto, "Helvetica Neue",
+          Arial;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #1a1d2e;
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .result-header {
+        text-align: center;
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .result-icon {
+        font-size: 80px;
+        margin-bottom: 16px;
+        animation: bounce 1s ease-in-out;
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-20px);
+        }
+      }
+      .result-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .result-title.victory {
+        background: linear-gradient(90deg, #ffd700, #ffa500);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .result-title.defeat {
+        background: linear-gradient(90deg, #ff6b6b, #ee5a52);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .result-subtitle {
+        font-size: 14px;
+        color: #9aa3b2;
+      }
+      .stats-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .stat-card {
+        background: #252838;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        text-align: center;
+        transition: all 0.2s;
+      }
+      .stat-card:hover {
+        border-color: rgba(16, 185, 129, 0.3);
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+      }
+      .stat-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+      }
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        background: linear-gradient(90deg, #10b981, #059669);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .stat-label {
+        font-size: 13px;
+        color: #9aa3b2;
+      }
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .rewards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .reward-card {
+        background: #252838;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        transition: all 0.2s;
+      }
+      .reward-card:hover {
+        border-color: rgba(255, 215, 0, 0.3);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        transform: translateY(-2px);
+      }
+      .reward-card.gold {
+        border-color: rgba(255, 215, 0, 0.3);
+        background: rgba(255, 215, 0, 0.05);
+      }
+      .reward-name {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .reward-type {
+        font-size: 12px;
+        color: #9aa3b2;
+        margin-bottom: 8px;
+      }
+      .stat-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        margin-right: 4px;
+      }
+      .stat-badge.hp {
+        background: rgba(255, 107, 107, 0.15);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        color: #ff6b6b;
+      }
+      .stat-badge.def {
+        background: rgba(78, 168, 222, 0.15);
+        border: 1px solid rgba(78, 168, 222, 0.3);
+        color: #4ea8de;
+      }
+      .stat-badge.atk {
+        background: rgba(168, 85, 247, 0.15);
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        color: #a855f7;
+      }
+      .gold-reward {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffd700;
+      }
+      .exp-bar-container {
+        background: #252838;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        margin-bottom: 24px;
+      }
+      .exp-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .exp-level {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .exp-text {
+        font-size: 13px;
+        color: #9aa3b2;
+      }
+      .exp-bar {
+        width: 100%;
+        height: 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+      }
+      .exp-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981, #059669);
+        border-radius: 12px;
+        transition: width 1s ease-out;
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+      }
+      .exp-bar-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 12px;
+        font-weight: 600;
+        color: #e6eef8;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+      .btn {
+        padding: 14px 32px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #e6eef8;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        transition: all 0.2s;
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        transform: translateY(-2px);
+      }
+      .btn.primary {
+        background: linear-gradient(90deg, #10b981, #059669);
+        border-color: transparent;
+        box-shadow: 0 0 24px rgba(16, 185, 129, 0.2);
+      }
+      .btn.primary:hover {
+        box-shadow: 0 0 32px rgba(16, 185, 129, 0.4);
+      }
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #9aa3b2;
+        background: #252838;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="root"></div>
+    </div>
+
+    <!-- React & ReactDOM (UMD builds) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel (in-browser JSX transpile for demo) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Demo: GameResultScene -->
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      function GameResultScene({ onNavigate }) {
+        const [expProgress, setExpProgress] = useState(0);
+        const [gameResult, setGameResult] = useState({
+          stage: 1,
+          survivalTime: "00:00",
+          kills: 0,
+          goldEarned: 0,
+          rewards: [],
+        });
+
+        useEffect(() => {
+          window.parent.postMessage("GAME_RESULT_READY", "*");
+          const handler = (event) => {
+            if (event.data?.type === "GAME_RESULT_DATA") {
+              console.log("게임 결과 데이터 수신:", event.data.payload);
+              setGameResult(event.data.payload); // UI 업데이트
+              window.parent.postMessage("GAME_RESULT_RENDER_COMPLETE", "*");
+            }
+          };
+
+          window.addEventListener("message", handler);
+          return () => window.removeEventListener("message", handler);
+        }, []);
+
+        // // 게임 결과 데이터 (실제로는 props나 API에서 받아옴)
+        // const gameResult = {
+        //   stage: 15,
+        //   survivalTime: "18:45",
+        //   kills: 127,
+        //   goldEarned: 8500,
+        //   rewards: [
+        //     {
+        //       id: 1,
+        //       name: "전설의 검",
+        //       type: "weapon",
+        //       atk: 85,
+        //       rarity: "legendary",
+        //     },
+        //     {
+        //       id: 2,
+        //       name: "드래곤 갑옷",
+        //       type: "armor",
+        //       def: 120,
+        //       rarity: "legendary",
+        //     },
+        //     {
+        //       id: 3,
+        //       name: "마법 반지",
+        //       type: "accessory",
+        //       hp: 50,
+        //       atk: 30,
+        //       rarity: "epic",
+        //     },
+        //   ],
+        // };
+
+        const getTypeLabel = (type) => {
+          switch (type) {
+            case "weapon":
+              return "무기";
+            case "armor":
+              return "방어구";
+            case "accessory":
+              return "악세서리";
+            default:
+              return type;
+          }
+        };
+
+        return (
+          <div className="card">
+            {/* Result Header */}
+            <div className="result-header">
+              <div className={"result-title victory"}>게임 결과!</div>
+            </div>
+            {/* Stats */}
+            <div className="stats-container">
+              <div className="stat-card">
+                <div className="stat-icon">⏱️</div>
+                <div className="stat-value">{gameResult.survivalTime}</div>
+                <div className="stat-label">생존 시간</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">💀</div>
+                <div className="stat-value">{gameResult.kills}</div>
+                <div className="stat-label">처치 수</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">🎯</div>
+                <div className="stat-value">Stage {gameResult.stage}</div>
+                <div className="stat-label">도달 스테이지</div>
+              </div>
+            </div>
+            {/* Rewards */}
+            <div>
+              <div className="section-title">
+                <span>🎁</span>
+                <span>획득 아이템</span>
+              </div>
+              {gameResult.rewards.length > 0 ? (
+                <div className="rewards-grid">
+                  <div className="reward-card gold">
+                    <div className="reward-name">골드</div>
+                    <div className="reward-type">재화</div>
+                    <div className="gold-reward">
+                      💰 {gameResult.goldEarned.toLocaleString()}G
+                    </div>
+                  </div>
+                  {gameResult.rewards.map((reward) => (
+                    <div key={reward.id} className="reward-card">
+                      <div className="reward-name">{reward.name}</div>
+                      <div className="reward-type">
+                        {getTypeLabel(reward.type)}
+                      </div>
+                      <div>
+                        {reward.atk && (
+                          <span className="stat-badge atk">
+                            +{reward.atk} ATK
+                          </span>
+                        )}
+                        {reward.def && (
+                          <span className="stat-badge def">
+                            +{reward.def} DEF
+                          </span>
+                        )}
+                        {reward.hp && (
+                          <span className="stat-badge hp">+{reward.hp} HP</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+                  <div>획득한 아이템이 없습니다</div>
+                </div>
+              )}
+            </div>
+            {/* Actions */}
+            <div className="actions">
+              <button
+                className="btn"
+                onClick={() => {
+                  window.parent.postMessage({ type: "GO_TO_MAIN" }, "*");
+                  const iframe =
+                    window.parent.document.getElementById("react-ui");
+                  iframe.src = "about:blank"; // 완전 초기화
+                  iframe.style.visibility = "hidden";
+                }}
+              >
+                메인으로
+              </button>
+              <button
+                className="btn primary"
+                onClick={() => {
+                  window.parent.postMessage({ type: "RESTART_GAME" }, "*");
+                  const iframe =
+                    window.parent.document.getElementById("react-ui");
+                  iframe.src = "about:blank"; // 완전 초기화
+                  iframe.style.visibility = "hidden";
+                }}
+              >
+                다시하기
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // 예시 렌더링: root에 붙이기
+      ReactDOM.createRoot(document.getElementById("root")).render(
+        React.createElement(GameResultScene, {
+          onNavigate: (scene) => {
+            console.log("navigate to", scene);
+          },
+        })
+      );
+    </script>
+  </body>
+</html>

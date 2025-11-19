@@ -12,7 +12,7 @@ export default class GameData {
         {
           id: 1,
           name: "Goblin",
-          hp: 10,
+          hp: 200,
           atk: 10,
           def: 5,
           speed: 50,
@@ -82,6 +82,7 @@ export default class GameData {
           add_atk: 10,
           add_def: 5,
           description: "불꽃이 빛나는 검입니다.",
+          chance: 50,
         },
         {
           id: 2,
@@ -91,103 +92,129 @@ export default class GameData {
           add_atk: 10,
           add_def: 5,
           description: "불꽃이 빛나는 검입니다.",
+          chance: 50,
         },
       ],
     };
 
-    // ⭐️ 모든 멤버 변수를 Private 필드('#')로 변경합니다.
-    this.currentStage = 1;
-    this.playerCurrentHp = this.gameDataSet.charInfo.totalHp;
-    this.playerMaxHp = this.gameDataSet.charInfo.totalHp;
-    this.playerLevel = 1;
-    this.playerSpeed = 200;
-    this.monsterPerStage = 5;
-    this.monsterKilledCount = 0;
-    this.monsterAllKilledCount = 0;
-    this.currentExp = 0;
-    this.expNeededLevel = 100;
-    this.clock = 0;
-    this.gold = 0;
+    this.gameState = {
+      stage: {
+        current: 1,
+      },
+
+      player: {
+        level: 1,
+        currentHp: this.gameDataSet.charInfo.totalHp,
+        currentAtk: this.gameDataSet.charInfo.totalAtk,
+        currentDef: this.gameDataSet.charInfo.totalDef,
+        maxHp: this.gameDataSet.charInfo.totalHp,
+        speed: 200,
+        currentExp: 0,
+        gold: 0,
+
+        items: [],
+      },
+
+      monster: {
+        killedInStage: 0,
+        killedAll: 0,
+      },
+
+      system: {
+        clock: 0,
+      },
+    };
+
+    this.gameConfig = {
+      stage: {
+        initialMonsterCount: 5, // 스테이지 시작 몬스터 수
+        monsterIncreasePerStage: 2, // 스테이지마다 몬스터 증가 수
+
+        initialSpawnDelay: 1500, // 초기 스폰 시간 (ms)
+        spawnDelayDecreaseFlat: 50, // 또는 스테이지마다 고정 감소 (50ms 줄이기)
+        minSpawnDelay: 300, // 최소 스폰 시간 (ms)
+      },
+
+      level: {
+        initialExpNeeded: 1, // 초기 레벨업에 필요한 경험치
+        expIncreaseRate: 1.15, // 스테이지당 경험치 증가율 (15% 증가 예시)
+      },
+    };
+
+    this.gameResult = {
+      stage: 1,
+      survivalTime: "18:45",
+      kills: 0,
+      goldEarned: 0,
+      rewards: [],
+    };
   }
 
-  // --- Getter: 외부에서 값을 '읽기' 위한 함수들 ---
-  getStage() {
-    return this.currentStage;
+  /* ------------------------------------------------------
+      내부 유틸 함수 (path 기반 객체 접근)
+  ------------------------------------------------------ */
+
+  _getByPath(obj, path) {
+    return path.split(".").reduce((acc, key) => acc[key], obj);
   }
-  getPlayerHp() {
-    return this.playerCurrentHp;
+
+  _setByPath(obj, path, value) {
+    const keys = path.split(".");
+    const lastKey = keys.pop();
+    const target = keys.reduce((acc, key) => acc[key], obj);
+    target[lastKey] = value;
   }
-  getMonsterSpawnDelay() {
-    const base = 1500;
-    const delay = base - this.currentStage * 100;
-    return Math.max(10, delay); // 최소 10ms
+
+  _addByPath(obj, path, value) {
+    const keys = path.split(".");
+    const lastKey = keys.pop();
+    const target = keys.reduce((acc, key) => acc[key], obj);
+    target[lastKey] += value;
   }
+
+  /* ------------------------------------------------------
+      gameState 관련 메서드
+  ------------------------------------------------------ */
+
+  getState(path) {
+    return this._getByPath(this.gameState, path);
+  }
+
+  setState(path, value) {
+    this._setByPath(this.gameState, path, value);
+  }
+
+  addState(path, value) {
+    this._addByPath(this.gameState, path, value);
+  }
+
+  /* ------------------------------------------------------
+      gameConfig 관련 메서드
+  ------------------------------------------------------ */
+
+  getConfig(path) {
+    return this._getByPath(this.gameConfig, path);
+  }
+
+  setConfig(path, value) {
+    this._setByPath(this.gameConfig, path, value);
+  }
+
+  addConfig(path, value) {
+    this._addByPath(this.gameConfig, path, value);
+  }
+
   getMonsterPerStage() {
-    return this.monsterPerStage;
+    const initial = this.gameConfig.stage.initialMonsterCount;
+    const increase = this.gameConfig.stage.monsterIncreasePerStage;
+    const stage = this.gameState.stage.current;
+    return initial + increase * (stage - 1);
   }
-  getMonsterKilledCount() {
-    return this.monsterKilledCount;
-  }
-  getPlayerLevel() {
-    return this.playerLevel;
-  }
-  getCurrentExp() {
-    return this.currentExp;
-  }
+
   getExpNeededLevel() {
-    return this.expNeededLevel;
-  }
-  getGold() {
-    return this.gold;
-  }
-
-  // --- 값을 변경하는 메소드들 ---
-
-  // 스테이지 설정 (이름 좋음)
-  setStage(stage) {
-    this.currentStage = stage;
-    this.monsterPerStage = 5 + this.currentStage * 5;
-    this.monsterKilledCount = 0;
-  }
-
-  // 몬스터 처치 (이름 좋음)
-  incrementMonsterKilled() {
-    this.monsterKilledCount++;
-  }
-
-  // 골드 추가 (이름 좋음)
-  addGold(amount) {
-    if (amount > 0) {
-      this.gold += amount;
-    }
-  }
-
-  // ⭐️ 데미지 처리 (setPlayerHP -> takeDamage 로 이름 변경)
-  // "데미지를 입는다"는 의도를 명확하게 표현합니다.
-  takeDamage(damageAmount) {
-    this.playerCurrentHp -= damageAmount;
-    if (this.playerCurrentHp < 0) {
-      this.playerCurrentHp = 0;
-    }
-  }
-
-  // 경험치 추가 및 레벨업 로직 (이름 좋음)
-  addExp(amount) {
-    if (amount <= 0) return;
-
-    this.currentExp += amount;
-    // ⭐️ 레벨업 로직을 별도 private 함수로 분리하면 더 깔끔해집니다.
-    if (this.currentExp >= this.expNeededLevel) {
-      this.levelUp();
-    }
-  }
-
-  // ⭐️ Private 메소드로 레벨업 로직 분리
-  levelUp() {
-    this.playerLevel++;
-    this.currentExp -= this.expNeededLevel; // ⭐️ 경험치 이월 로직 수정
-    this.expNeededLevel += 50;
-    console.log(`레벨업! 현재 레벨: ${this.playerLevel}`);
-    // TODO: 레벨업 이펙트나 사운드 이벤트 발생
+    const initial = this.gameConfig.level.initialExpNeeded;
+    const rate = this.gameConfig.level.expIncreaseRate;
+    const level = this.gameState.player.level;
+    return Math.floor(initial * Math.pow(rate, level - 1));
   }
 }
