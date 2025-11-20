@@ -1,10 +1,6 @@
 import Player from "../characters/Player.js";
-import MonsterManager from "../utils/MonsterManager.js";
-import BulletManager from "../utils/BulletManager.js";
-import ItemManager from "../utils/ItemManager.js";
-import GameManager from "../utils/GameManager.js";
-import ChatManager from "../utils/ChatManager.js";
-import DamagePopupManager from "../utils/DamagePopupManager.js";
+import GameManager from "../managers/GameManager.js";
+import ChatManager from "../managers/ChatManager.js";
 import ExpBar from "../ui/ExpBar.js";
 import remainMonster from "../ui/RemainMonster.js";
 import GameData from "../data/GameData.js";
@@ -44,10 +40,6 @@ export default class PlayScene extends Phaser.Scene {
 
     // managers
     this.chatManager = new ChatManager(this, 10, cam.height - 150, 400);
-    this.monsterManager = new MonsterManager(this);
-    this.bulletManager = new BulletManager(this);
-    this.itemManager = new ItemManager(this);
-    this.DamagePopupManager = new DamagePopupManager(this);
     this.gameManager = new GameManager(this);
 
     this.chatManager.addMessage("게임 시작!", "#00ff00ff", 1000);
@@ -55,42 +47,6 @@ export default class PlayScene extends Phaser.Scene {
       "몰려오는 몬스터를 처치하고 생존하세요!",
       "#dc0e0eff",
       2000
-    );
-
-    // 플레이어 몬스터 충돌 처리
-    this.physics.add.overlap(
-      this.player,
-      this.monsterManager.monsters,
-      this.gameManager.onMonsterHitPlayer,
-      null,
-      this.gameManager
-    );
-
-    // 총알 몬스터 충돌 처리
-    this.physics.add.overlap(
-      this.bulletManager.bullets,
-      this.monsterManager.monsters,
-      this.gameManager.onBulletHitMonster,
-      null,
-      this.gameManager
-    );
-
-    // 플레이어와 코인 아이템 충돌 처리
-    this.physics.add.overlap(
-      this.player,
-      this.itemManager.coins,
-      this.gameManager.onPlayerGetItem,
-      null,
-      this.gameManager
-    );
-
-    // 플레이어와 다이아몬드 아이템 충돌 처리
-    this.physics.add.overlap(
-      this.player,
-      this.itemManager.diamonds,
-      this.gameManager.onPlayerGetItem,
-      null,
-      this.gameManager
     );
   }
 

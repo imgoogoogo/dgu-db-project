@@ -11,7 +11,7 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   fire() {
     const closestMonster = this.scene.physics.closest(
       this,
-      this.scene.monsterManager.monsters.getChildren().filter((m) => m.active)
+      this.scene.monsterFactory.monsters.getChildren().filter((m) => m.active)
     );
 
     if (closestMonster) {

@@ -1,6 +1,7 @@
 // index.js
 import express from "express";
 import path from "path";
+import cors from "cors";
 import { fileURLToPath } from "url";
 
 // 현재 경로 계산 (ESM에서 __dirname 대체용
@@ -12,10 +13,16 @@ const app = express();
 const PORT = 3000;
 // 정적 파일 제공 (public 폴더에 HTML, JS, 이미지 넣기)
 app.use(express.static(path.join(__dirname, "client")));
+// cors
+app.use(cors({ origin: "*" }));
 
 // 루트 라우트 — 기본 index.html 반환
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "client", "index.html"));
+app.get("/ranking", (req, res) => {
+  res.header("Content-Type", "application/json");
+  res.json({
+    success: true,
+    message: "Ranking route works!",
+  });
   console.log("✅ Root route accessed, index.html served.");
 });
 

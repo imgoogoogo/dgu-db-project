@@ -7,7 +7,7 @@ export default class MainScene extends Phaser.Scene {
 
   preload() {}
 
-  create() {
+  async create() {
     this.scene.launch("PopupScene");
 
     const { width: sw, height: sh } = this.scale;

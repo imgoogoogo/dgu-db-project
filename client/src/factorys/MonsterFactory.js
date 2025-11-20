@@ -1,6 +1,7 @@
 import Monster from "../characters/Monster.js";
+import getRandomElement from "../utils/Random.js";
 
-export default class MonsterManager {
+export default class MonsterFactory {
   constructor(scene) {
     this.scene = scene;
 
@@ -38,19 +39,10 @@ export default class MonsterManager {
     );
 
     const monsters = this.scene.gameData.gameDataSet.monsters;
-    const rand = Math.random() * 100;
-    let acc = 0;
-    let selected = monsters[0]; // 기본값
+    const selectedMonster = getRandomElement(monsters);
 
-    for (const m of monsters) {
-      acc += m.chance;
-      if (rand < acc) {
-        selected = m;
-        break;
-      }
-    }
-    const monsterType = selected.id;
-    const monsterInfo = selected;
+    const monsterType = selectedMonster.id;
+    const monsterInfo = selectedMonster;
 
     const monster = this.monsters.get(
       spawnPoint.x,

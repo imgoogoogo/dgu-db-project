@@ -1,7 +1,7 @@
 import Coin from "../items/Coin.js";
 import Diamond from "../items/Diamond.js";
 
-export default class ItemManager {
+export default class ItemFactory {
   constructor(scene) {
     this.scene = scene;
 

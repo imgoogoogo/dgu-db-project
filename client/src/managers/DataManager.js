@@ -4,7 +4,7 @@
  */
 class DataManager {
   // API 서버의 기본 URL
-  #BASE_URL = "/api"; // 실제 서버 주소에 맞게 변경해야 할 수 있습니다.
+  #BASE_URL = "http://localhost:3000"; // 실제 서버 주소에 맞게 변경해야 할 수 있습니다.
 
   // 로그인 후 서버로부터 받는 데이터
   #playerId = null;
@@ -27,12 +27,12 @@ class DataManager {
       },
     };
 
-    if (isAuth) {
-      if (!this.#jwt) {
-        throw new Error("인증 토큰(JWT)이 없습니다. 로그인이 필요합니다.");
-      }
-      options.headers["Authorization"] = `Bearer ${this.#jwt}`;
-    }
+    // if (isAuth) {
+    //   if (!this.#jwt) {
+    //     throw new Error("인증 토큰(JWT)이 없습니다. 로그인이 필요합니다.");
+    //   }
+    //   options.headers["Authorization"] = `Bearer ${this.#jwt}`;
+    // }
 
     if (body) {
       options.body = JSON.stringify(body);
@@ -78,7 +78,16 @@ class DataManager {
     console.log("로그아웃 되었습니다.");
   }
 
-  // --- Player ---
+  // --- Inventory ---
+
+  /**
+   * 현재 플레이어의 인벤토리 정보를 조회합니다. (인벤토리 초기 접속)
+   * @returns {Promise<{items: Array, charStats: Array}>}
+   */
+  async getInventory() {
+    const response = await this.#request(`/inventory`, "GET", null, true); // 인증 필요
+    return JSON.parse(response);
+  }
 
   /**
    * 플레이어의 스탯 강화를 요청합니다.
@@ -86,23 +95,7 @@ class DataManager {
    */
   async updatePlayerStats(stats) {
     const body = { playerId: this.#playerId, ...stats };
-    await this.#request("/player/update/stats", "PATCH", body, true); // 인증 필요
-  }
-
-  // --- Inventory ---
-
-  /**
-   * 현재 플레이어의 인벤토리 정보를 조회합니다.
-   * @returns {Promise<{items: Array, charStats: Array}>}
-   */
-  async getInventory() {
-    const response = await this.#request(
-      `/inventory/${this.#playerId}`,
-      "GET",
-      null,
-      true
-    ); // 인증 필요
-    return response.data;
+    await this.#request("/inventory/enforce", "PATCH", body, true); // 인증 필요
   }
 
   // --- Ranking ---
@@ -112,7 +105,7 @@ class DataManager {
    */
   async getRanking() {
     const response = await this.#request("/ranking", "GET");
-    return response.data;
+    return response;
   }
 
   // --- Auction ---
