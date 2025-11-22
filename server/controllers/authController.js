@@ -77,12 +77,18 @@ export const kakaoCallback = async (req, res) => {
 
     const character = chr[0];
 
+    await pool.query(
+      "INSERT INTO user_logs (char_id, name, type, action) VALUES (?, ?, 'login', '로그인')",
+      [character.char_id, character.name]
+    );
+
     // 4) JWT 발급
     const token = jwt.sign(
       {
         account_id: accountId,
         char_id: character.char_id,
         login_id: `kakao:${kakaoId}`,
+        name: character.name
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }

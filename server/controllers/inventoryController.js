@@ -34,6 +34,12 @@ export const getInventory = async (req, res) => {
       }
     }
 
+    // ⭐ 인벤토리 조회 로그 기록
+    await pool.query(
+      "INSERT INTO user_logs (char_id, name, type, action) VALUES (?, ?, 'action', '인벤토리 조회')",
+      [charId, req.user.name]
+    );
+
     res.json({
       success: true,
       data: {
@@ -45,7 +51,6 @@ export const getInventory = async (req, res) => {
         },
         inventoryItems: items.map((i) => ({
           id: i.inventory_id,
-          itemId: i.item_id,
           name: i.name,
           type: i.type,
           hp: i.add_hp,
@@ -65,14 +70,23 @@ export const getInventory = async (req, res) => {
 // ----------------------------------------------------------------------
 // 2) 능력치 강화 버튼
 // ----------------------------------------------------------------------
-export const enhanceStats = async (req, res) => {
+export const enhanceStat = async (req, res) => {
   try {
     const charId = req.user.char_id;
-    const { hp, atk, def, usedGold } = req.body;
+    const { stat } = req.body; // "hp" / "atk" / "def"
 
-    // 현재 골드 확인
+    // stat 값 검증
+    const allowed = ["hp", "atk", "def"];
+    if (!allowed.includes(stat)) {
+      return res.status(400).json({
+        success: false,
+        message: "잘못된 스탯입니다."
+      });
+    }
+
+    // 현재 스탯/골드 조회
     const [[chr]] = await pool.query(
-      "SELECT gold FROM characters WHERE char_id = ?",
+      "SELECT gold, hp, atk, def FROM characters WHERE char_id = ?",
       [charId]
     );
 
@@ -83,39 +97,59 @@ export const enhanceStats = async (req, res) => {
       });
     }
 
-    if (chr.gold < usedGold) {
+    // 현재 스탯 값 (hp / atk / def 중 하나)
+    const currentValue = chr[stat];
+
+    // 요구 골드 = 현재 스탯 × 10
+    const requiredGold = currentValue * 10;
+
+    if (chr.gold < requiredGold) {
       return res.status(400).json({
         success: false,
-        message: "골드가 부족합니다."
+        message: `골드가 부족합니다. 필요 골드: ${requiredGold}`
       });
     }
 
-    // 클라에서 보낸 값 그대로 저장
+    // 강화 적용 (스탯 +1)
+    const newValue = currentValue + 1;
+
     await pool.query(
-      `UPDATE characters
-       SET hp = ?, atk = ?, def = ?, gold = gold - ?
+      `UPDATE characters 
+       SET ${stat} = ?, gold = gold - ?
        WHERE char_id = ?`,
-      [hp, atk, def, usedGold, charId]
+      [newValue, requiredGold, charId]
     );
 
+    // 로그 기록
+    await pool.query(
+      "INSERT INTO user_logs (char_id, name, type, action, detail) VALUES (?, ?, 'action', '스탯 강화', ?)",
+      [
+        charId,
+        req.user.name,
+        `${stat}: ${currentValue} → ${newValue}, usedGold: ${requiredGold}`
+      ]
+    );
+
+    // 최신 정보 반환
     return res.json({
       success: true,
-      stats: {
-        hp,
-        atk,
-        def,
-        gold: chr.gold - usedGold,
-      },
+      stat,
+      oldValue: currentValue,
+      newValue,
+      usedGold: requiredGold,
+      gold: chr.gold - requiredGold
     });
 
   } catch (err) {
-    console.error("enhanceStats error:", err);
+    console.error("enhanceStat error:", err);
     return res.status(500).json({
       success: false,
-      message: err.message,
+      message: err.message
     });
   }
 };
+
+
 
 // ----------------------------------------------------------------------
 // 3) 아이템 장착
@@ -123,7 +157,7 @@ export const enhanceStats = async (req, res) => {
 export const equipItem = async (req, res) => {
   try {
     const charId = req.user.char_id;
-    const { inventory_id } = req.body;
+    const { inventory_id, equipped } = req.body;
 
     // 해당 아이템 가져오기
     const [[item]] = await pool.query(
@@ -133,6 +167,7 @@ export const equipItem = async (req, res) => {
     if (!item)
       return res.status(404).json({ success: false, message: "아이템 없음" });
 
+    if (equipped) {
     // 같은 타입의 아이템 모두 해제
     await pool.query(
       `UPDATE inventory inv
@@ -149,6 +184,25 @@ export const equipItem = async (req, res) => {
       "UPDATE inventory SET equipped=1 WHERE inventory_id=?",
       [inventory_id]
     );
+  } else {
+    // 아이템 장착 해제
+    await pool.query(
+      "UPDATE inventory SET equipped = 0 WHERE inventory_id = ? AND char_id = ?",
+      [inventory_id, charId]
+    );
+
+    return res.json({
+      success: true,
+      message: "아이템 장착 해제 완료",
+      equipped: false
+    });
+  }
+
+    // ⭐ 아이템 장착 로그
+    await pool.query(
+      "INSERT INTO user_logs (char_id, name, type, action, detail) VALUES (?, ?, 'action', '아이템 장착', ?)",
+      [charId, req.user.name, `inventory_id:${inventory_id}, item_id:${item.item_id}`]
+    );
 
     res.json({ success: true });
   } catch (err) {
@@ -158,26 +212,8 @@ export const equipItem = async (req, res) => {
 };
 
 // ----------------------------------------------------------------------
-// 4) 아이템 장착 해제
-// ----------------------------------------------------------------------
-export const unequipItem = async (req, res) => {
-  try {
-    const { inventory_id } = req.body;
-    await pool.query("UPDATE inventory SET equipped=0 WHERE inventory_id=?", [
-      inventory_id,
-    ]);
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("unequipItem error:", err);
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
-// ----------------------------------------------------------------------
 // 5) 아이템 판매
 // ----------------------------------------------------------------------
-// 4) 아이템 판매 → 인벤토리 + 경매 등록까지 모두 처리
 export const sellItem = async (req, res) => {
   const charId = req.user.char_id;
   const { inventory_id, sellGold } = req.body;
@@ -199,9 +235,9 @@ export const sellItem = async (req, res) => {
 
     // 2) 경매 등록
     await conn.query(
-      `INSERT INTO auction (inventory_id, quantity, price, regist_date)
-       VALUES (?, ?, ?, NOW())`,
-      [inv.inventory_id, inv.quantity, sellGold]
+      `INSERT INTO auction (inventory_id, price, regist_date)
+       VALUES (?, ?, NOW())`,
+      [inv.inventory_id, sellGold]
     );
 
     // 3) 인벤토리에서 auctioned 플래그 업데이트
@@ -211,6 +247,12 @@ export const sellItem = async (req, res) => {
     );
 
     await conn.commit();
+
+    // ⭐ 아이템 판매 로그
+    await pool.query(
+      "INSERT INTO user_logs (char_id, name, type, action, detail) VALUES (?, ?, 'action', '아이템 판매', ?)",
+      [charId, req.user.name, `inventory_id:${inventory_id}, price:${sellGold}`]
+    );
 
     res.json({
       success: true,

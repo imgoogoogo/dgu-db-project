@@ -8,6 +8,7 @@ import pool from "../config/db.js";
 export const getGameData = async (req, res) => {
   try {
     const charId = req.user.char_id;
+    const name = req.user.name;
 
     // 1) 캐릭터 정보
     const [[charInfo]] = await pool.query(
@@ -49,11 +50,12 @@ export const getGameData = async (req, res) => {
       `SELECT 
           monster_id AS id,
           name,
-          level,
           hp,
           atk,
           def,
-          chance
+          chance,
+          speed,
+          drop_item_id
         FROM monsters
         ORDER BY monster_id ASC`
     );
@@ -67,9 +69,16 @@ export const getGameData = async (req, res) => {
           add_hp,
           add_atk,
           add_def,
-          description
+          description,
+          chance
         FROM items
         ORDER BY item_id ASC`
+    );
+
+    // ⭐ 게임 시작 로그 기록
+    await pool.query(
+      "INSERT INTO user_logs (char_id, name, type, action) VALUES (?, ?, 'action', '게임 시작')",
+      [charId, name]
     );
 
     return res.json({
@@ -88,20 +97,44 @@ export const getGameData = async (req, res) => {
    2) POST /api/game/end
    게임 종료 후 보상(골드, 아이템) 저장하는 API
 =========================================================== */
+function parseTimeToSeconds(str) {
+  if (!str) return 0;
+  const [min, sec] = str.split(":").map(Number);
+  return (min * 60) + sec;
+}
+
 export const endGame = async (req, res) => {
   try {
     const charId = req.user.char_id;
-    const { gold, items } = req.body;
+    const name = req.user.name;
 
-    // ⭐ 캐릭터 골드 추가
+    const {
+      stage,
+      survivalTime,   // "18:45"
+      goldEarned,
+      rewards
+    } = req.body;
+
+    const gold = goldEarned ?? 0;
+
+    // 문자열 "18:45" → 초단위 숫자로 변환
+    const survivalSeconds = parseTimeToSeconds(survivalTime);
+
+    // ⭐ 캐릭터 정보 업데이트
     await pool.query(
-      `UPDATE characters SET gold = gold + ? WHERE char_id = ?`,
-      [gold ?? 0, charId]
+      `UPDATE characters 
+       SET 
+         max_stage = GREATEST(max_stage, ?),
+         survived_time = ?, 
+         gold = gold + ?,
+         last_played_at = NOW()
+       WHERE char_id = ?`,
+      [stage ?? 0, survivalSeconds, gold, charId]
     );
 
-    // ⭐ 아이템 보상 있으면 inventory에 추가
-    if (Array.isArray(items)) {
-      for (const item of items) {
+    // ⭐ 아이템 보상 저장
+    if (Array.isArray(rewards)) {
+      for (const item of rewards) {
         await pool.query(
           `INSERT INTO inventory (char_id, item_id, quantity, equipped, auctioned)
            VALUES (?, ?, ?, 0, 0)
@@ -110,6 +143,16 @@ export const endGame = async (req, res) => {
         );
       }
     }
+
+    // ⭐ 로그
+    await pool.query(
+      "INSERT INTO user_logs (char_id, name, type, action, detail) VALUES (?, ?, 'action', '게임 종료', ?)",
+      [
+        charId,
+        name,
+        `stage:${stage ?? 0}, survivalSeconds:${survivalSeconds}, gold:${gold}`
+      ]
+    );
 
     return res.json({ success: true, message: "게임 결과 저장 완료" });
   } catch (err) {

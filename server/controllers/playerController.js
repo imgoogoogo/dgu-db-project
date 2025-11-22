@@ -22,6 +22,12 @@ export const registerPlayer = async (req, res) => {
       [accountId, name]
     );
 
+    // ⭐ 플레이어 등록 로그 기록
+    await pool.query(
+      "INSERT INTO user_logs (char_id, name, type, action, detail) VALUES (?, ?, 'action', '플레이어 생성', ?)",
+      [result.insertId, name, `playerId:${result.insertId}`]
+    );
+
     res.json({ success: true, message: "플레이어 등록 완료", data: { playerId: result.insertId, name } });
   } catch (err) {
     console.error("registerPlayer error:", err);
@@ -34,6 +40,7 @@ export const registerPlayer = async (req, res) => {
 export const updateStats = async (req, res) => {
   try {
     const charId = req.user.char_id;
+    const name = req.user.name;
     const { hp, atk, def } = req.body;
 
     const fields = [];
@@ -48,6 +55,16 @@ export const updateStats = async (req, res) => {
     params.push(charId);
     const sql = `UPDATE characters SET ${fields.join(", ")} WHERE char_id = ?`;
     await pool.query(sql, params);
+
+    // ⭐ 스탯 강화 로그 기록
+    await pool.query(
+      "INSERT INTO user_logs (char_id, name, type, action, detail) VALUES (?, ?, 'action', '스탯 변경', ?)",
+      [
+        charId,
+        name,
+        `hp:${hp ?? 'no'}, atk:${atk ?? 'no'}, def:${def ?? 'no'}`
+      ]
+    );
 
     res.json({ success: true });
   } catch (err) {
