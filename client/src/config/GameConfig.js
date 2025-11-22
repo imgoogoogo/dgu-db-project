@@ -18,7 +18,7 @@ export const PHASER_CONFIG = {
   scene: [LoadScene, MainScene, PlayScene, PopupScene], // 등록 순서 중요
   physics: {
     default: "arcade",
-    arcade: { debug: true },
+    arcade: { debug: false },
   },
   render: {
     pixelArt: true, // 픽셀 아트 스타일로 렌더링

@@ -26,7 +26,11 @@ export default class LoadScene extends Phaser.Scene {
     this.load.image("auction_button", "button/auction_button.png");
     this.load.image("kakaologin_button", "button/kakaologin_button.png");
 
-    this.load.image("bullet", "beam.png");
+    this.load.spritesheet("bullet", "bullet.png", {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
+
     this.load.spritesheet("idle", "character/Gangsters_1/Idle.png", {
       frameWidth: 128,
       frameHeight: 128,
@@ -78,6 +82,15 @@ export default class LoadScene extends Phaser.Scene {
   }
 
   create() {
+    this.anims.create({
+      key: "bullet",
+      frames: this.anims.generateFrameNumbers("bullet", {
+        start: 331,
+        end: 334,
+      }),
+      frameRate: 12,
+      repeat: -1,
+    });
     this.anims.create({
       key: "idle",
       frames: this.anims.generateFrameNumbers("idle"),

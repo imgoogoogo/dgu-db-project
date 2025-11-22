@@ -17,7 +17,7 @@ export default class PlayScene extends Phaser.Scene {
 
   preload() {}
 
-  create() {
+  async create() {
     // camera
     const cam = this.cameras.main;
 
@@ -29,6 +29,8 @@ export default class PlayScene extends Phaser.Scene {
 
     // data
     this.gameData = new GameData();
+    await this.gameData.init();
+    console.log("게임 데이터 로드 완료:", this.gameData.gameDataSet);
 
     // --- UI 생성 ---
     this.expBar = new ExpBar(this, 0, 0);

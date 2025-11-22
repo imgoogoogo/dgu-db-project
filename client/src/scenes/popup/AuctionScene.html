@@ -297,11 +297,20 @@
           setAuctionItems((prev) =>
             prev.filter((item) => item.id !== auctionItem.id)
           );
+          setMyGold((prev) => prev - auctionItem.price);
+          window.parent.postMessage(
+            { type: "AUCTION_BUY_ITEM", auctionId: auctionItem.id },
+            "*"
+          );
           notyf.success("구매 완료!");
         };
 
         const handleCancelSale = (auctionId) => {
           setMySales((prev) => prev.filter((item) => item.id !== auctionId));
+          window.parent.postMessage(
+            { type: "AUCTION_CANCEL_SALE", auctionId: auctionId },
+            "*"
+          );
           notyf.success("판매 취소 완료!");
         };
 

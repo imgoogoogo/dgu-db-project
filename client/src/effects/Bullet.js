@@ -6,6 +6,9 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
     super(scene, x, y, texture);
     scene.add.existing(this);
     scene.physics.add.existing(this);
+
+    this.anims.play("bullet", this);
+    this.setScale(2);
   }
 
   fire(targetMonster) {

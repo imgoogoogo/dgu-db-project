@@ -1,37 +1,80 @@
 // index.js
 import express from "express";
 import path from "path";
-import cors from "cors";
 import { fileURLToPath } from "url";
+import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 
-// 현재 경로 계산 (ESM에서 __dirname 대체용
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Express 앱 생성
 const app = express();
 const PORT = 3000;
-// 정적 파일 제공 (public 폴더에 HTML, JS, 이미지 넣기)
-app.use(express.static(path.join(__dirname, "client")));
-// cors
-app.use(cors({ origin: "*" }));
 
-// 루트 라우트 — 기본 index.html 반환
-app.get("/ranking", (req, res) => {
-  res.header("Content-Type", "application/json");
-  res.json({
-    success: true,
-    message: "Ranking route works!",
-  });
-  console.log("✅ Root route accessed, index.html served.");
+// ----------------------
+// 공통 미들웨어
+// ----------------------
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 정적 파일 (리액트 빌드)
+app.use(express.static(path.join(__dirname, "client")));
+
+// ----------------------
+// 기존 게임 API 라우트
+// ----------------------
+import authRoutes from "./server/routes/authRoutes.js";
+import playerRoutes from "./server/routes/playerRoutes.js";
+import inventoryRoutes from "./server/routes/inventoryRoutes.js";
+import rankRoutes from "./server/routes/rankRoutes.js";
+import auctionRoutes from "./server/routes/auctionRoutes.js";
+import gameRoutes from "./server/routes/gameRoutes.js";
+
+app.use("/api/auth", authRoutes);
+app.use("/api/player", playerRoutes);
+app.use("/api/inventory", inventoryRoutes);
+app.use("/api/ranking", rankRoutes);
+app.use("/api/auction", auctionRoutes);
+app.use("/api/game", gameRoutes);
+
+// ----------------------
+// 🔥 Admin 라우트 추가
+// ----------------------
+import dashboardRoutes from "./server/routes/admin/dashboardRoutes.js";
+import usersRoutes from "./server/routes/admin/usersRoutes.js";
+import balanceRoutes from "./server/routes/admin/balanceRoutes.js";
+import logsRoutes from "./server/routes/admin/logsRoutes.js";
+import settingsRoutes from "./server/routes/admin/settingsRoutes.js";
+
+app.use("/api/admin/dashboard", dashboardRoutes);
+app.use("/api/admin/users", usersRoutes);
+app.use("/api/admin/balance", balanceRoutes);
+app.use("/api/admin/logs", logsRoutes);
+app.use("/api/admin/settings", settingsRoutes);
+
+// ----------------------
+// 기본 페이지
+// ----------------------
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "index.html"));
 });
 
-// 예시 API 라우트 (테스트용)
+// 상태 체크
 app.get("/api/hello", (req, res) => {
   res.json({ message: "서버 정상 작동 중 ✅" });
 });
 
-// 서버 실행
+// 404
+app.use((req, res) => {
+  res
+    .status(404)
+    .json({ success: false, message: "요청한 API를 찾을 수 없습니다." });
+});
+
 app.listen(PORT, () => {
-  console.log(`✅ ZombieSurvival server running on: http://localhost:${PORT}`);
+  console.log(
+    `🔥 ZombieSurvival API Server Running → http://localhost:${PORT}`
+  );
 });

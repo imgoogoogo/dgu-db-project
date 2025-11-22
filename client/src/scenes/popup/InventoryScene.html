@@ -426,6 +426,14 @@
         const handleSubmit = () => {
           if (sellPrice && sellPrice > 0) {
             onConfirm(item, sellPrice);
+            window.parent.postMessage(
+              {
+                type: "SELL_ITEM",
+                id: item.id,
+                price: sellPrice,
+              },
+              "*"
+            );
             onClose();
           }
         };
@@ -454,7 +462,7 @@
                 <div className="modal-item-info">
                   <div className="modal-item-name">{item.name}</div>
                   <div style={{ fontSize: 12, color: "#9aa3b2" }}>
-                    {item.description}
+                    {item.desc}
                   </div>
                 </div>
 
@@ -738,6 +746,10 @@
                           notyf.error("골드가 부족하여 강화할 수 없습니다.");
                           return;
                         }
+                        window.parent.postMessage(
+                          { type: "ENFORCE_STAT", stat: "hp" },
+                          "*"
+                        );
                         notyf.success("체력 강화 완료!");
                         setMyGold((prev) => prev - cost);
                         setPlayerStats((prev) => ({
@@ -767,6 +779,10 @@
                           notyf.error("골드가 부족하여 강화할 수 없습니다.");
                           return;
                         }
+                        window.parent.postMessage(
+                          { type: "ENFORCE_STAT", stat: "atk" },
+                          "*"
+                        );
                         notyf.success("공격력 강화 완료!");
                         setMyGold((prev) => prev - cost);
                         setPlayerStats((prev) => ({
@@ -796,6 +812,10 @@
                           notyf.error("골드가 부족하여 강화할 수 없습니다.");
                           return;
                         }
+                        window.parent.postMessage(
+                          { type: "ENFORCE_STAT", stat: "def" },
+                          "*"
+                        );
                         notyf.success("방어력 강화 완료!");
                         setMyGold((prev) => prev - cost);
                         setPlayerStats((prev) => ({
@@ -991,15 +1011,23 @@
                           <button
                             className="action-btn unequip"
                             style={{ width: "118px" }} // 판매 버튼 위치로 오도록 넓게
-                            onClick={() =>
+                            onClick={() => {
                               setInventoryItems((prev) =>
                                 prev.map((i) =>
                                   i.id === item.id
                                     ? { ...i, equipped: false }
                                     : i
                                 )
-                              )
-                            }
+                              );
+                              window.parent.postMessage(
+                                {
+                                  type: "ITEM_EQUIP",
+                                  id: item.id,
+                                  equipped: false,
+                                },
+                                "*"
+                              );
+                            }}
                           >
                             해제
                           </button>
@@ -1011,6 +1039,14 @@
                               onClick={() => {
                                 handleEquip(item);
                                 setSellModalItem(null);
+                                window.parent.postMessage(
+                                  {
+                                    type: "ITEM_EQUIP",
+                                    id: item.id,
+                                    equipped: true,
+                                  },
+                                  "*"
+                                );
                               }}
                             >
                               장착

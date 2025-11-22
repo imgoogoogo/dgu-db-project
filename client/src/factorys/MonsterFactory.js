@@ -1,5 +1,5 @@
 import Monster from "../characters/Monster.js";
-import getRandomElement from "../utils/Random.js";
+import getRandomMonsterByChance from "../utils/Random.js";
 
 export default class MonsterFactory {
   constructor(scene) {
@@ -39,7 +39,7 @@ export default class MonsterFactory {
     );
 
     const monsters = this.scene.gameData.gameDataSet.monsters;
-    const selectedMonster = getRandomElement(monsters);
+    const selectedMonster = getRandomMonsterByChance(monsters);
 
     const monsterType = selectedMonster.id;
     const monsterInfo = selectedMonster;
@@ -51,7 +51,8 @@ export default class MonsterFactory {
       monsterInfo.hp,
       monsterInfo.atk,
       monsterInfo.def,
-      monsterInfo.speed
+      monsterInfo.speed,
+      monsterInfo.drop_item_id
     );
 
     // 2. ⭐️ 몬스터를 성공적으로 가져왔다면, 즉시 활성화하고 보이게 만듭니다.
@@ -61,6 +62,7 @@ export default class MonsterFactory {
       monster.atk = monsterInfo.atk;
       monster.def = monsterInfo.def;
       monster.speed = monsterInfo.speed;
+      monster.drop_item_id = monsterInfo.drop_item_id;
       monster.setActive(true);
       monster.setVisible(true);
       monster.body.enable = true;
@@ -74,8 +76,13 @@ export default class MonsterFactory {
   }
 
   startEvent(delay = 1000) {
+    // minSpawnDelay 값 가져오기 (예: gameConfig.stage.minSpawnDelay)
+    const minSpawnDelay =
+      this.scene.gameData.gameConfig.stage.minSpawnDelay || 300;
+    const finalDelay = Math.max(delay, minSpawnDelay);
+
     this.spawnEvent = this.scene.time.addEvent({
-      delay: delay,
+      delay: finalDelay,
       loop: true,
       callback: () => {
         // 플레이어 주변의 화면 바깥 영역에 몬스터를 생성합니다.

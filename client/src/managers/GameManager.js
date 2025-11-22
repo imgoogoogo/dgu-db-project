@@ -6,6 +6,7 @@ import DamagePopupManager from "./DamagePopupManager.js";
 import MonsterFactory from "../factorys/MonsterFactory.js";
 import BulletFactory from "../factorys/BulletFactory.js";
 import ItemFactory from "../factorys/ItemFactory.js";
+import dataManager from "../managers/DataManager.js";
 
 export default class GameManager {
   constructor(scene) {
@@ -83,8 +84,8 @@ export default class GameManager {
 
   resetSpawnEvent(stage) {
     const delay =
-      this.gameData.getConfig("stage.initialSpawnDelay") -
-      (stage - 1) * this.gameData.getConfig("stage.spawnDelayDecreaseFlat");
+      this.gameData.getConfig("stage.baseSpawnDelay") -
+      (stage - 1) * this.gameData.getConfig("stage.spawnDelayDecreasePerStage");
 
     this.monsterFactory.stopEvent();
     this.monsterFactory.startEvent(delay);
@@ -116,16 +117,17 @@ export default class GameManager {
   /* ─────────────────────────────
    * 게임 오버
    * ───────────────────────────── */
-  showGameOver() {
+  async showGameOver() {
     this.scene.scene.pause("PlayScene");
 
     const result = this.gameData.gameResult;
     result.stage = this.gameData.getState("stage.current");
-    result.survivalTime = this.gameData.getState("system.clock");
+    result.survivalTime = this.scene.clock.getElapsedTime();
     result.kills = this.gameData.getState("monster.killedAll");
     result.goldEarned = this.gameData.getState("player.gold");
-    console.log(result.goldEarned);
     result.rewards = this.gameData.getState("player.items");
+
+    await dataManager.saveGameResult(result);
 
     const iframe = document.getElementById("react-ui");
     iframe.style.visibility = "hidden";

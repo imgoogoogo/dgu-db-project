@@ -4,7 +4,7 @@
  */
 class DataManager {
   // API 서버의 기본 URL
-  #BASE_URL = "http://localhost:3000"; // 실제 서버 주소에 맞게 변경해야 할 수 있습니다.
+  #BASE_URL = "http://localhost:3000/api"; // 실제 서버 주소에 맞게 변경해야 할 수 있습니다.
 
   // 로그인 후 서버로부터 받는 데이터
   #playerId = null;
@@ -27,12 +27,12 @@ class DataManager {
       },
     };
 
-    // if (isAuth) {
-    //   if (!this.#jwt) {
-    //     throw new Error("인증 토큰(JWT)이 없습니다. 로그인이 필요합니다.");
-    //   }
-    //   options.headers["Authorization"] = `Bearer ${this.#jwt}`;
-    // }
+    if (isAuth) {
+      if (!this.#jwt) {
+        throw new Error("인증 토큰(JWT)이 없습니다. 로그인이 필요합니다.");
+      }
+      options.headers["Authorization"] = `Bearer ${this.#jwt}`;
+    }
 
     if (body) {
       options.body = JSON.stringify(body);
@@ -53,19 +53,15 @@ class DataManager {
     }
   }
 
+  setJWT(jwt) {
+    this.#jwt = jwt;
+  }
+
   // --- Auth ---
 
-  /**
-   * 카카오 토큰으로 서버에 로그인을 요청합니다.
-   * @param {string} kakaoToken - 카카오 로그인 후 받은 토큰
-   * @returns {Promise<{playerId: string, jwt: string}>}
-   */
-  async login(kakaoToken) {
-    const response = await this.#request("/auth/login", "POST", { kakaoToken });
-    this.#playerId = response.data.playerId;
-    this.#jwt = response.data.jwt;
-    console.log("로그인 성공:", response.data);
-    return response.data;
+  async loginKakao() {
+    // fetch 대신 브라우저 리다이렉트로 인증 시작
+    window.location.href = "http://localhost:3000/api/auth/kakao/login";
   }
 
   /**
@@ -85,8 +81,9 @@ class DataManager {
    * @returns {Promise<{items: Array, charStats: Array}>}
    */
   async getInventory() {
+    console.log(this.#jwt);
     const response = await this.#request(`/inventory`, "GET", null, true); // 인증 필요
-    return JSON.parse(response);
+    return response.data;
   }
 
   /**
@@ -94,8 +91,19 @@ class DataManager {
    * @param {{hp?: number, atk?: number, def?: number}} stats - 강화할 스탯 정보
    */
   async updatePlayerStats(stats) {
-    const body = { playerId: this.#playerId, ...stats };
+    const body = { stat: stats };
+    console.log(body);
     await this.#request("/inventory/enforce", "PATCH", body, true); // 인증 필요
+  }
+
+  async updateItemEquip(item) {
+    const body = { inventory_id: item.id, equipped: item.equipped };
+    await this.#request("/inventory/equip", "PATCH", body, true); // 인증 필요
+  }
+
+  async sellItem(item) {
+    const body = { inventory_id: item.id, sellGold: item.price };
+    await this.#request("/inventory/sell", "POST", body, true); // 인증 필요
   }
 
   // --- Ranking ---
@@ -104,7 +112,7 @@ class DataManager {
    * 전체 랭킹 정보를 조회합니다.
    */
   async getRanking() {
-    const response = await this.#request("/ranking", "GET");
+    const response = await this.#request("/ranking", "GET", null, true); // 인증 필요
     return response;
   }
 
@@ -114,18 +122,8 @@ class DataManager {
    * 거래소의 모든 아이템 목록을 조회합니다.
    */
   async getAuctionList() {
-    const response = await this.#request("/auction", "GET");
+    const response = await this.#request("/auction", "GET", null, true); // 인증 필요
     return response.data;
-  }
-
-  /**
-   * 거래소에 아이템을 판매 등록합니다.
-   * @param {string} itemId - 판매할 아이템 ID
-   * @param {number} price - 판매 가격
-   */
-  async sellItem(itemId, price) {
-    const body = { playerId: this.#playerId, itemId, price };
-    await this.#request("/auction/sell", "POST", body, true); // 인증 필요
   }
 
   /**
@@ -133,7 +131,7 @@ class DataManager {
    * @param {string} auctionId - 구매할 경매 ID
    */
   async buyItem(auctionId) {
-    const body = { buyerId: this.#playerId, auctionId };
+    const body = { auction_id: auctionId };
     await this.#request("/auction/buy", "POST", body, true); // 인증 필요
   }
 
@@ -142,19 +140,35 @@ class DataManager {
    * @param {string} auctionId - 취소할 경매 ID
    */
   async cancelAuction(auctionId) {
-    const body = { playerId: this.#playerId };
-    await this.#request(`/auction/cancel/${auctionId}`, "DELETE", body, true); // 인증 필요
+    const body = { auction_id: auctionId };
+    await this.#request(`/auction/cancel`, "DELETE", body, true); // 인증 필요
   }
 
-  // --- GameResult ---
+  // --- Game ---
+
+  async getGameDataSet() {
+    const response = await this.#request("/game", "GET", null, true); // 인증 필요
+    return response;
+  }
+
+  async getGameConfig() {
+    const response = await this.#request("/game/config", "GET", null, false); // 인증 필요 없음
+    return response.config;
+  }
 
   /**
    * 한 판의 게임 결과를 서버에 저장합니다.
    * @param {{stage: number, killCount: number, playTime: number, items: Array, goldEarned: number}} result
    */
   async saveGameResult(result) {
-    const body = { playerId: this.#playerId, ...result };
-    await this.#request("/game/end", "POST", body, true); // 인증 필요
+    const body = {
+      stage: result.stage,
+      survivalTime: result.survivalTime,
+      goldEarned: result.goldEarned,
+      rewards: result.rewards,
+    };
+    console.log(body);
+    await this.#request("/game/save", "POST", body, true); // 인증 필요
   }
 }
 

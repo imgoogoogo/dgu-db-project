@@ -8,8 +8,9 @@ export default class DropManager {
   handleMonsterDrop(monster) {
     // 몬스터의 drop_item 코드에 해당하는 아이템만 추출
     const items = this.gameData.gameDataSet.items.filter(
-      (it) => it.code === monster.drop_item
+      (it) => it.id === monster.drop_item_id
     );
+
     if (items.length === 0) return;
 
     // 해당 아이템의 chance만큼 확률적 드랍
