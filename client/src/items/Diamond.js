@@ -12,4 +12,13 @@ export default class Diamond extends Phaser.Physics.Arcade.Sprite {
     // TODO: 생성 시 반짝이는 애니메이션 추가 가능
     this.anims.play("diamond", true);
   }
+
+  killAndHide() {
+    this.setActive(false);
+    this.setVisible(false);
+    if (this.body) {
+      this.body.enable = false;
+      this.body.setVelocity(0, 0);
+    }
+  }
 }

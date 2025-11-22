@@ -14,6 +14,7 @@ export default class LoadScene extends Phaser.Scene {
     this.load.image("icon_skull", "icons/skull.png");
     this.load.image("icon_clock", "icons/clock.png");
     this.load.image("icon_gold", "icons/coins.png");
+    this.load.image("icon_heart", "icons/heart.png");
     this.load.image("icon_inventory", "icons/inventory_icon.png");
     this.load.image("icon_ranking", "icons/ranking_icon.png");
     this.load.image("icon_auction", "icons/auction_icon.png");
@@ -31,6 +32,10 @@ export default class LoadScene extends Phaser.Scene {
       frameHeight: 128,
     });
     this.load.spritesheet("walk", "character/Gangsters_1/Run.png", {
+      frameWidth: 128,
+      frameHeight: 128,
+    });
+    this.load.spritesheet("dead", "character/Gangsters_1/Dead.png", {
       frameWidth: 128,
       frameHeight: 128,
     });
@@ -84,6 +89,12 @@ export default class LoadScene extends Phaser.Scene {
       frames: this.anims.generateFrameNumbers("walk"),
       frameRate: 10,
       repeat: -1,
+    });
+    this.anims.create({
+      key: "dead",
+      frames: this.anims.generateFrameNumbers("dead"),
+      frameRate: 6,
+      repeat: 0,
     });
     this.anims.create({
       key: "monster1",

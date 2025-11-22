@@ -1,58 +1,52 @@
-export default class HpBar extends Phaser.GameObjects.Graphics {
-  /**
-   * @param {Phaser.Scene} scene 씬
-   * @param {number} x x 좌표
-   * @param {number} y y 좌표
-   * @param {number} width 너비
-   * @param {number} height 높이
-   */
-  constructor(scene, x, y, width = 40, height = 5) {
-    super(scene);
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.value = 100; // 0 ~ 100 사이의 값
+export default class HpBar extends Phaser.GameObjects.Container {
+  constructor(scene, pos_x, pos_y, maxHp) {
+    super(scene, pos_x, pos_y);
 
-    // 씬의 화면 목록에 추가하여 보이게 합니다.
-    scene.add.existing(this);
+    this.maxHp = maxHp;
+    this.currentHp = this.maxHp;
 
+    this.setScrollFactor(0); // UI 요소가 카메라 스크롤에 영향을 받지 않도록 설정
+    this.scene.add.existing(this);
     this.draw();
   }
 
-  /**
-   * HP 바의 값을 설정하고 다시 그립니다.
-   * @param {number} newValue 0에서 100 사이의 새로운 HP 값 (백분율)
-   */
-  setValue(newValue) {
-    this.value = Phaser.Math.Clamp(newValue, 0, 100);
-    this.draw();
-  }
-
-  /**
-   * HP 바를 화면에 그립니다.
-   */
   draw() {
-    this.clear();
+    // icon
+    const icon = this.scene.add
+      .image(0, 0, "icon_heart")
+      .setOrigin(0, 0.5)
+      .setScale(0.8);
+    this.add(icon);
 
-    // 1. 배경 (어두운 회색)
-    this.fillStyle(0x333333);
-    this.fillRect(0, 0, this.width, this.height);
+    // background bar
+    this.bgBar = this.scene.add
+      .rectangle(icon.displayWidth + 10, 0, 200, 25, 0x333333)
+      .setOrigin(0, 0.5);
+    this.add(this.bgBar);
 
-    // 2. HP (항상 빨간색으로 설정)
-    this.fillStyle(0xff0000); // ⭐️ 항상 빨간색으로 표시하도록 수정
+    // hp bar
+    this.hpBar = this.scene.add
+      .rectangle(icon.displayWidth + 10, 0, 200, 25, 0xff0000)
+      .setOrigin(0, 0.5);
+    this.add(this.hpBar);
 
-    // 3. 현재 HP만큼 채우기
-    const healthWidth = Math.floor(this.width * (this.value / 100));
-    this.fillRect(0, 0, healthWidth, this.height);
+    // hp 텍스트
+    this.hpText = this.scene.add
+      .text(icon.displayWidth + 120, 0, `${this.currentHp} / ${this.maxHp}`, {
+        fontSize: "16px",
+        color: "#ffffff",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5, 0.5);
+    this.add(this.hpText);
   }
 
-  /**
-   * HP 바의 위치를 업데이트합니다. (캐릭터의 update에서 호출)
-   * @param {number} x 새로운 x 좌표
-   * @param {number} y 새로운 y 좌표
-   */
-  updatePosition(x, y) {
-    this.setPosition(x, y);
+  updateUI(newHp) {
+    this.currentHp = Phaser.Math.Clamp(newHp, 0, this.maxHp);
+    const hpRatio = this.currentHp / this.maxHp;
+    this.hpBar.width = 200 * hpRatio;
+    if (this.hpText) {
+      this.hpText.setText(`${this.currentHp} / ${this.maxHp}`);
+    }
   }
 }

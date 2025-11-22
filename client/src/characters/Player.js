@@ -1,4 +1,4 @@
-import HpBar from "../ui/HpBar.js";
+import HpBar from "../ui/MiniHpBar.js";
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture) {
@@ -26,7 +26,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     });
 
     // HpBar 생성
-    this.hpBar = new HpBar(scene, this.x, this.y - this.height / 2, 40, 5);
+    this.hpBar = new HpBar(scene, this.x / 2, this.y - this.height / 2, 40, 5);
+
+    this.isDead = false; // 추가: 플레이어의 생사 상태를 나타내는 변수
   }
 
   preUpdate(time, delta) {
@@ -35,10 +37,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     const speed = this.gameData.getState("player.speed");
     this.move(speed);
 
-    this.hpBar.updatePosition(this.x, this.y - 20);
+    this.hpBar.updatePosition(this.x - 20, this.y - 20);
   }
 
   move(speed) {
+    if (this.isDead) return; // 죽었으면 애니메이션 변경 금지
+
     let velocityX = 0;
     let velocityY = 0;
     let isMoving = false;
@@ -77,5 +81,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     } else {
       this.anims.play("idle", true);
     }
+  }
+
+  die() {
+    this.isDead = true;
+    this.anims.stop();
+    this.anims.play("dead", true);
+    this.setVelocity(0, 0);
+    this.body.enable = false;
   }
 }

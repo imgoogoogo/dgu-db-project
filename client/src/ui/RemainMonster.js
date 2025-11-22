@@ -11,7 +11,7 @@ export default class RemainMonster extends Phaser.GameObjects.Container {
     // icon
     const icon = this.scene.add
       .image(0, 0, "icon_skull")
-      .setOrigin(0, 0.5)
+      .setOrigin(0.5, 0.5)
       .setScale(0.8);
     this.add(icon);
 
@@ -22,7 +22,7 @@ export default class RemainMonster extends Phaser.GameObjects.Container {
         fill: "#ffffff",
         fontStyle: "bold",
       })
-      .setOrigin(0, 0.5);
+      .setOrigin(0.5, 0.5);
     this.add(this.countText);
   }
 

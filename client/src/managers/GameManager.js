@@ -38,6 +38,7 @@ export default class GameManager {
       null,
       c
     );
+
     s.physics.add.overlap(
       this.bulletFactory.bullets,
       this.monsterFactory.monsters,
@@ -75,7 +76,8 @@ export default class GameManager {
 
     this.scene.chatManager.addMessage(
       `=== 스테이지 ${stage} 시작 ===`,
-      "#ffff00ff"
+      "#ffff00ff",
+      2000
     );
   }
 
@@ -91,6 +93,7 @@ export default class GameManager {
   checkStageClear() {
     const killed = this.gameData.getState("monster.killedInStage");
     const need = this.gameData.getMonsterPerStage();
+    this.updateAllUI();
 
     if (killed >= need) {
       this.initStage(this.gameData.getState("stage.current") + 1);
@@ -121,6 +124,7 @@ export default class GameManager {
     result.survivalTime = this.gameData.getState("system.clock");
     result.kills = this.gameData.getState("monster.killedAll");
     result.goldEarned = this.gameData.getState("player.gold");
+    console.log(result.goldEarned);
     result.rewards = this.gameData.getState("player.items");
 
     const iframe = document.getElementById("react-ui");
@@ -140,6 +144,16 @@ export default class GameManager {
       }
     };
     window.addEventListener("message", handler);
+
+    window.addEventListener("message", (event) => {
+      if (event.data?.type === "GO_TO_MAIN") {
+        this.scene.scene.start("MainScene");
+        window.removeEventListener("message", this);
+      } else if (event.data?.type === "RESTART_GAME") {
+        this.scene.scene.start("PlayScene");
+        window.removeEventListener("message", this);
+      }
+    });
   }
 
   /* ─────────────────────────────
@@ -159,10 +173,6 @@ export default class GameManager {
       this.gameData.getState("player.currentExp"),
       this.gameData.getExpNeededLevel(),
       this.gameData.getState("player.level")
-    );
-
-    this.scene.player.hpBar.setValue(
-      this.gameData.getState("player.currentHp")
     );
   }
 }

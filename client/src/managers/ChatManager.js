@@ -11,7 +11,7 @@ export default class ChatManager {
     this.textGroup = [];
 
     this.background = scene.add
-      .rectangle(x, y, width, maxMessages * this.textHeight + 20, 0x000000, 0.5)
+      .rectangle(x, y, width, maxMessages * this.textHeight + 20, 0x000000, 0)
       .setOrigin(0, 0)
       .setDepth(1000)
       .setScrollFactor(0);
@@ -35,7 +35,8 @@ export default class ChatManager {
 
     const msg = this.scene.add
       .text(this.x + 10, msgY, text, {
-        fontSize: "14px",
+        fontFamily: "Arial",
+        fontSize: "16px",
         color: color,
       })
       .setDepth(1001)

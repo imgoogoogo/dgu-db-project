@@ -4,7 +4,7 @@ export default class GameData {
     this.gameDataSet = {
       charInfo: {
         name: "John Doe",
-        totalHp: 100,
+        totalHp: 10,
         totalAtk: 200,
         totalDef: 300,
       },
@@ -17,6 +17,7 @@ export default class GameData {
           def: 5,
           speed: 50,
           chance: 100,
+          drop_item: 1,
         },
         {
           id: 2,

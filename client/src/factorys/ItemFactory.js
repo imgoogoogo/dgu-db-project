@@ -51,18 +51,11 @@ export default class ItemFactory {
    */
   removeItem(item) {
     if (item instanceof Coin) {
-      this.coins.killAndHide(item);
+      this.coins.remove(item, true, true);
     } else if (item instanceof Diamond) {
-      this.diamonds.killAndHide(item);
+      this.diamonds.remove(item, true, true);
     }
-    if (item.body) {
-      item.body.enable = false; // 충돌 비활성화
-      item.body.setVelocity(0, 0); // 움직임 멈춤
-    }
-    item.setActive(false);
-    item.setVisible(false);
-    item.x = -1000;
-    item.y = -1000;
+    item.killAndHide();
   }
 
   /**

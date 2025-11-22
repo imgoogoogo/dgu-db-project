@@ -18,10 +18,34 @@ export default class BulletFactory {
     const player = this.scene.player;
     const count = player.bulletCount || 1;
 
-    // 총알 각도 분산 (예: -15도 ~ +15도)
-    const spread = 30; // 전체 퍼짐 각도
-    const startAngle = -spread / 2;
-    const angleStep = count > 1 ? spread / (count - 1) : 0;
+    const critLevelText = this.scene.skillWindow.skillTexts[3]?.text;
+    let critLevel = 0;
+    if (critLevelText) {
+      const match = critLevelText.match(/Lv\. (\d+)/);
+      critLevel = match ? parseInt(match[1], 10) : 0;
+    }
+
+    const spread = 30;
+    let startAngle = -spread / 2;
+    let angleStep = count > 1 ? spread / (count - 1) : 0;
+    const centerIndex = Math.floor(count / 2);
+
+    // 몬스터 자동 조준 타겟 계산
+    let target = null;
+    if (critLevel > 0) {
+      const monsters = this.monsterFactory.monsters
+        .getChildren()
+        .filter((m) => m.active);
+      if (monsters.length > 0) {
+        target = this.scene.physics.closest(player, monsters);
+      }
+    }
+
+    // 정밀 사격 확률: 레벨당 20% (예시)
+    const autoAimChance = Math.min(critLevel * 0.2, 1); // 최대 100%
+
+    // spread 전체 방향(기준 각도) - 무작위 회전
+    let randomBaseAngle = Phaser.Math.FloatBetween(-Math.PI, Math.PI);
 
     for (let i = 0; i < count; i++) {
       const bullet = this.bullets.get(player.x, player.y, "bullet");
@@ -30,32 +54,26 @@ export default class BulletFactory {
         bullet.setVisible(true);
         bullet.body.enable = true;
 
-        // 각도 계산
-        const angle = Phaser.Math.DegToRad(startAngle + i * angleStep);
-
-        // 타겟이 있으면 타겟 방향, 없으면 spread 적용
-        const closestMonster = this.scene.physics.closest(
-          bullet,
-          this.monsterFactory.monsters.getChildren().filter((m) => m.active)
-        );
-
-        if (closestMonster) {
-          // 기본 방향 벡터
-          const dx = closestMonster.x - player.x;
-          const dy = closestMonster.y - player.y;
-          const baseAngle = Math.atan2(dy, dx);
-
-          // 퍼짐 각도 적용
-          const finalAngle = baseAngle + angle;
-          const vx = Math.cos(finalAngle) * Bullet.SPEED;
-          const vy = Math.sin(finalAngle) * Bullet.SPEED;
-          bullet.setVelocity(vx, vy);
+        let angle;
+        if (
+          critLevel > 0 &&
+          i === centerIndex &&
+          target &&
+          Math.random() < autoAimChance // ← 이 부분이 확률 적용
+        ) {
+          // 가운데 총알이 몬스터 방향
+          const dx = target.x - player.x;
+          const dy = target.y - player.y;
+          angle = Math.atan2(dy, dx);
         } else {
-          // 위쪽으로 spread
-          const vx = Math.sin(angle) * Bullet.SPEED;
-          const vy = -Math.cos(angle) * Bullet.SPEED;
-          bullet.setVelocity(vx, vy);
+          // 나머지 spread 각도는 무작위 기준 각도에서 퍼짐
+          angle =
+            randomBaseAngle + Phaser.Math.DegToRad(startAngle + i * angleStep);
         }
+
+        const vx = Math.cos(angle) * Bullet.SPEED;
+        const vy = Math.sin(angle) * Bullet.SPEED;
+        bullet.setVelocity(vx, vy);
 
         bullet.lifespanTimer = this.scene.time.delayedCall(
           Bullet.LIFESPAN,

@@ -2,11 +2,13 @@ import Player from "../characters/Player.js";
 import GameManager from "../managers/GameManager.js";
 import ChatManager from "../managers/ChatManager.js";
 import ExpBar from "../ui/ExpBar.js";
-import remainMonster from "../ui/RemainMonster.js";
+import RemainMonster from "../ui/RemainMonster.js";
 import GameData from "../data/GameData.js";
 import Clock from "../ui/Clock.js";
 import Gold from "../ui/Gold.js";
 import Stage from "../ui/Stage.js";
+import HpBar from "../ui/HpBar.js";
+import SkillWindow from "../ui/SkillWindow.js";
 
 export default class PlayScene extends Phaser.Scene {
   constructor() {
@@ -25,28 +27,38 @@ export default class PlayScene extends Phaser.Scene {
       .setOrigin(0)
       .setScrollFactor(0);
 
-    // --- UI 생성 ---
-    this.expBar = new ExpBar(this, 0, 0);
-    this.clock = new Clock(this, 20, 80);
-    this.remainMonster = new remainMonster(this, cam.width / 2 + 400, 80);
-    this.gold = new Gold(this, 20, 120);
-    this.stage = new Stage(this, cam.width / 2, 80);
-
     // data
     this.gameData = new GameData();
+
+    // --- UI 생성 ---
+    this.expBar = new ExpBar(this, 0, 0);
+    this.hpBar = new HpBar(
+      this,
+      20,
+      90,
+      this.gameData.getState("player.currentHp")
+    );
+    this.skillWindow = new SkillWindow(this, 20, 150);
+    this.clock = new Clock(this, 20, 50);
+    this.gold = new Gold(
+      this,
+      (cam.width / 2 + this.expBar.levelText.x) / 2,
+      50
+    );
+    this.stage = new Stage(this, cam.width / 2, 60);
+    this.remainMonster = new RemainMonster(this, this.clock.x + 150, 50);
 
     // player
     this.player = new Player(this, 200, 200, "idle");
 
     // managers
-    this.chatManager = new ChatManager(this, 10, cam.height - 150, 400);
+    this.chatManager = new ChatManager(this, 10, cam.height / 2 - 150, 400);
     this.gameManager = new GameManager(this);
 
-    this.chatManager.addMessage("게임 시작!", "#00ff00ff", 1000);
     this.chatManager.addMessage(
       "몰려오는 몬스터를 처치하고 생존하세요!",
-      "#dc0e0eff",
-      2000
+      "#ff0000ff",
+      1000
     );
   }
 
