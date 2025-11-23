@@ -268,7 +268,7 @@
         const [expProgress, setExpProgress] = useState(0);
         const [gameResult, setGameResult] = useState({
           stage: 1,
-          survivalTime: "00:00",
+          survivalTime: 0,
           kills: 0,
           goldEarned: 0,
           rewards: [],
@@ -287,6 +287,14 @@
           window.addEventListener("message", handler);
           return () => window.removeEventListener("message", handler);
         }, []);
+
+        function formatTime(seconds) {
+          const min = Math.floor(seconds / 60);
+          const sec = seconds % 60;
+          return `${min.toString().padStart(2, "0")}:${sec
+            .toString()
+            .padStart(2, "0")}`;
+        }
 
         // // 게임 결과 데이터 (실제로는 props나 API에서 받아옴)
         // const gameResult = {
@@ -343,7 +351,9 @@
             <div className="stats-container">
               <div className="stat-card">
                 <div className="stat-icon">⏱️</div>
-                <div className="stat-value">{gameResult.survivalTime}</div>
+                <div className="stat-value">
+                  {formatTime(gameResult.survivalTime)}
+                </div>
                 <div className="stat-label">생존 시간</div>
               </div>
               <div className="stat-card">

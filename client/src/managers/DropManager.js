@@ -16,6 +16,7 @@ export default class DropManager {
     // 해당 아이템의 chance만큼 확률적 드랍
     const item = this.getRandomItem(items);
 
+    this.gameData.gameState.player.items.push(item.id);
     this.scene.chatManager.addMessage(
       `몬스터 처치! [${item.name}] 획득!`,
       "#00ff00ff"

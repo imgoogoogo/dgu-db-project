@@ -165,9 +165,8 @@ export const endGame = async (req, res) => {
       for (const item of rewards) {
         await pool.query(
           `INSERT INTO inventory (char_id, item_id, equipped, auctioned)
-           VALUES (?, ?, 0, 0)
-           ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)`,
-          [charId, item.itemId, item.quantity ?? 1]
+           VALUES (?, ?, 0, 0)`,
+          [charId, item]
         );
       }
     }
