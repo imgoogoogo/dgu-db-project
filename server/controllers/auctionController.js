@@ -77,7 +77,7 @@ export const listAuction = async (req, res) => {
 ---------------------------------------------------- */
 export const buyAuction = async (req, res) => {
   const buyerCharId = req.user.char_id;
-  const { auctionId } = req.body;
+  const { auction_id } = req.body;
 
   const conn = await pool.getConnection();
   try {
@@ -92,7 +92,7 @@ export const buyAuction = async (req, res) => {
        FROM auction a
        JOIN inventory inv ON a.inventory_id = inv.inventory_id
        WHERE a.auction_id = ? FOR UPDATE`,
-      [auctionId]
+      [auction_id]
     );
 
     if (aRows.length === 0) throw new Error("경매 항목이 존재하지 않습니다.");
@@ -147,7 +147,7 @@ export const buyAuction = async (req, res) => {
     // ⭐ 구매 로그 (user_logs에는 name 컬럼 없음!)
     await pool.query(
       "INSERT INTO user_logs (char_id, type, action, detail) VALUES (?, 'action', '경매 구매', ?)",
-      [buyerCharId, `auctionId:${auctionId}, price:${a.price}`]
+      [buyerCharId, `auction_id:${auction_id}, price:${a.price}`]
     );
   } catch (err) {
     await conn.rollback();
