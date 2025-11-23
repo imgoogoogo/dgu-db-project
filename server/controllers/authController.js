@@ -10,7 +10,8 @@ export const kakaoLogin = (req, res) => {
   const url =
     `https://kauth.kakao.com/oauth/authorize?response_type=code` +
     `&client_id=${process.env.KAKAO_REST_API_KEY}` +
-    `&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
+    `&redirect_uri=${process.env.KAKAO_REDIRECT_URI}` +
+    `&prompt=login`;
 
   res.redirect(url);
 };
@@ -78,8 +79,8 @@ export const kakaoCallback = async (req, res) => {
     const character = chr[0];
 
     await pool.query(
-      "INSERT INTO user_logs (char_id, name, type, action) VALUES (?, ?, 'login', '로그인')",
-      [character.char_id, character.name]
+      "INSERT INTO user_logs (char_id, type, action) VALUES (?, 'login', '로그인')",
+      [character.char_id]
     );
 
     // 4) JWT 발급
@@ -96,9 +97,22 @@ export const kakaoCallback = async (req, res) => {
 
     console.log(`발급된 JWT: ${token}`);
     // 5) 프론트엔드로 JWT 전달
-    res.redirect(`http://localhost:3000?jwt=${token}`);
+    res.redirect(`http://192.168.0.23:3000?jwt=${token}`);
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+
+//카카오 로그아웃 api
+
+export const kakaoLogout = (req, res) => {
+  const logoutUrl =
+    `https://kauth.kakao.com/oauth/logout` +
+    `?client_id=${process.env.KAKAO_REST_API_KEY}` +
+    `&logout_redirect_uri=${process.env.KAKAO_LOGOUT_REDIRECT}`;
+
+  res.redirect(logoutUrl);
+};
+

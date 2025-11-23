@@ -4,7 +4,7 @@
  */
 class DataManager {
   // API 서버의 기본 URL
-  #BASE_URL = "http://localhost:3000/api"; // 실제 서버 주소에 맞게 변경해야 할 수 있습니다.
+  #BASE_URL = "http://192.168.0.23:3000/api"; // 실제 서버 주소에 맞게 변경해야 할 수 있습니다.
 
   // 로그인 후 서버로부터 받는 데이터
   #playerId = null;
@@ -61,7 +61,7 @@ class DataManager {
 
   async loginKakao() {
     // fetch 대신 브라우저 리다이렉트로 인증 시작
-    window.location.href = "http://localhost:3000/api/auth/kakao/login";
+    window.location.href = "http://192.168.0.23:3000/api/auth/kakao/login";
   }
 
   /**

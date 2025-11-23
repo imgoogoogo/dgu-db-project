@@ -75,6 +75,6 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(
-    `🔥 ZombieSurvival API Server Running → http://localhost:${PORT}`
+    `🔥 ZombieSurvival API Server Running → http://192.168.0.23:${PORT}`
   );
 });

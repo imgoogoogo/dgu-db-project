@@ -6,26 +6,31 @@ export const getRanking = async (req, res) => {
   const myCharId = req.user.char_id;
 
   try {
-    // 1) 전체 랭킹 100명 조회 (이미 정렬 포함)
+    // 1) 전체 랭킹 Top 100 조회 (정렬 기준: best_stage → gold)
     const [rows] = await pool.query(
-      `SELECT char_id, name AS nickName, max_stage AS maxStage, 
-              survived_time AS playTime, last_played_at AS lastPlayed
+      `SELECT 
+         char_id,
+         name AS nickName,
+         best_stage AS maxStage,
+         best_survived_time AS playTime,
+         best_played_date AS lastPlayed
        FROM characters
-       ORDER BY max_stage DESC, gold DESC
+       ORDER BY best_stage DESC, gold DESC
        LIMIT 100`
     );
 
-    // 2) 랭킹 번호 추가
+    // 2) 순위 번호 붙이기
     const rankings = rows.map((row, index) => ({
       rank: index + 1,
       ...row,
     }));
 
-    // 3) 내 랭킹 계산
+    // 3) 내 랭킹 찾기
     let myRanking = null;
 
-    // 3-1) 만약 top100 안에 있다면 rankings에서 찾기
+    // top100 안에 있는 경우
     const inTop100 = rankings.find((x) => x.char_id === myCharId);
+
     if (inTop100) {
       myRanking = {
         rank: inTop100.rank,
@@ -35,18 +40,19 @@ export const getRanking = async (req, res) => {
         lastPlayed: inTop100.lastPlayed,
       };
     } else {
-      // top100 밖이면 전체 등수 다시 계산
+      // top100 밖이면 전체 순위 계산
       const [[me]] = await pool.query(
         `SELECT 
-           (SELECT COUNT(*) + 1 
-              FROM characters 
-             WHERE max_stage > c.max_stage 
-                OR (max_stage = c.max_stage AND gold > c.gold)
+           (
+             SELECT COUNT(*) + 1
+             FROM characters
+             WHERE best_stage > c.best_stage
+                OR (best_stage = c.best_stage AND gold > c.gold)
            ) AS rank,
            name AS nickName,
-           max_stage AS maxStage,
-           survived_time AS playTime,
-           last_played_at AS lastPlayed
+           best_stage AS maxStage,
+           best_survived_time AS playTime,
+           best_played_date AS lastPlayed
          FROM characters c
          WHERE char_id = ?`,
         [myCharId]
@@ -55,7 +61,7 @@ export const getRanking = async (req, res) => {
       myRanking = me;
     }
 
-    // 4) 프론트에서 요구하는 형식으로 반환
+    // 4) 최종 응답
     return res.json({
       success: true,
       myRanking,
