@@ -352,7 +352,22 @@
               <div className="stat-card">
                 <div className="stat-icon">⏱️</div>
                 <div className="stat-value">
-                  {formatTime(gameResult.survivalTime)}
+                  {(function formatPlayTime(raw) {
+                    if (!raw) return "0초";
+                    // "00:08:22" → [00, 08, 22]
+                    const [hStr, mStr, sStr] = raw.split(":");
+                    const h = Number(hStr);
+                    const m = Number(mStr);
+                    const s = Number(sStr);
+
+                    let result = "";
+                    if (h > 0) result += `${h}시간 `;
+                    if (m > 0) result += `${m}분 `;
+                    if (s > 0) result += `${s}초 `;
+
+                    if (result.trim() === "") return "0초";
+                    return result.trim();
+                  })(gameResult.survivalTime)}
                 </div>
                 <div className="stat-label">생존 시간</div>
               </div>
@@ -382,25 +397,27 @@
                       💰 {gameResult.goldEarned.toLocaleString()}G
                     </div>
                   </div>
-                  {gameResult.rewards.map((reward) => (
-                    <div key={reward.id} className="reward-card">
+                  {gameResult.rewards.map((reward, idx) => (
+                    <div key={`reward-${idx}`} className="reward-card">
                       <div className="reward-name">{reward.name}</div>
                       <div className="reward-type">
                         {getTypeLabel(reward.type)}
                       </div>
-                      <div>
-                        {reward.atk && (
+                      <div style={{ whiteSpace: "nowrap" }}>
+                        {reward.add_hp > 0 && (
+                          <span className="stat-badge hp">
+                            +{reward.add_hp} HP
+                          </span>
+                        )}
+                        {reward.add_atk > 0 && (
                           <span className="stat-badge atk">
-                            +{reward.atk} ATK
+                            +{reward.add_atk} ATK
                           </span>
                         )}
-                        {reward.def && (
+                        {reward.add_def > 0 && (
                           <span className="stat-badge def">
-                            +{reward.def} DEF
+                            +{reward.add_def} DEF
                           </span>
-                        )}
-                        {reward.hp && (
-                          <span className="stat-badge hp">+{reward.hp} HP</span>
                         )}
                       </div>
                     </div>
@@ -414,7 +431,7 @@
               )}
             </div>
             {/* Actions */}
-            <div className="actions">
+            <div className="actions" style={{ marginTop: "16px" }}>
               <button
                 className="btn"
                 onClick={() => {

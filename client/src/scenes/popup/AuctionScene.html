@@ -152,6 +152,7 @@
         font-size: 13px;
         color: #9aa3b2;
         line-height: 1.8;
+        white-space: nowrap;
       }
       .price {
         text-align: right;
@@ -393,8 +394,12 @@
         //   },
         // ];
 
-        const getTimeSince = (timestamp) => {
+        const getTimeSince = (utcString) => {
+          console.log("getTimeSince called with:", utcString);
+          const timestamp = new Date(utcString).getTime(); // UTC → 자동으로 KST 변환됨
           const seconds = Math.floor((Date.now() - timestamp) / 1000);
+
+          if (seconds < 60) return `${seconds}초 전`;
           if (seconds < 3600) return `${Math.floor(seconds / 60)}분 전`;
           if (seconds < 86400) return `${Math.floor(seconds / 3600)}시간 전`;
           return `${Math.floor(seconds / 86400)}일 전`;
@@ -581,17 +586,17 @@
                         <div>
                           <div className="item-name">
                             <span style={{ marginRight: 10 }}>{item.name}</span>
-                            {item.hp && (
+                            {item.hp > 0 && (
                               <span className="stat-badge hp">
                                 +{item.hp} HP
                               </span>
                             )}
-                            {item.atk && (
+                            {item.atk > 0 && (
                               <span className="stat-badge atk">
                                 +{item.atk} ATK
                               </span>
                             )}
-                            {item.def && (
+                            {item.def > 0 && (
                               <span className="stat-badge def">
                                 +{item.def} DEF
                               </span>
@@ -667,17 +672,17 @@
                               <span style={{ marginRight: 10 }}>
                                 {item.name}
                               </span>
-                              {item.hp && (
+                              {item.hp > 0 && (
                                 <span className="stat-badge hp">
                                   +{item.hp} HP
                                 </span>
                               )}
-                              {item.atk && (
+                              {item.atk > 0 && (
                                 <span className="stat-badge atk">
                                   +{item.atk} ATK
                                 </span>
                               )}
-                              {item.def && (
+                              {item.def > 0 && (
                                 <span className="stat-badge def">
                                   +{item.def} DEF
                                 </span>

@@ -508,7 +508,7 @@
             content: `
       <span style="display: flex; align-items: center; gap: 6px;">
         <img src="/assets/icons/coins.png" width="16" height="16" style="vertical-align: middle;" />
-        ${playerStats.totalHp ? playerStats.totalHp * 10 : 0}
+        ${playerStats.baseHp ? playerStats.baseHp * 10 : 0}
       </span>
     `,
             allowHTML: true,
@@ -517,7 +517,7 @@
             content: `
       <span style="display: flex; align-items: center; gap: 6px;">
         <img src="/assets/icons/coins.png" width="16" height="16" style="vertical-align: middle;" />
-        ${playerStats.totalAtk ? playerStats.totalAtk * 10 : 0}
+        ${playerStats.baseAtk ? playerStats.baseAtk * 10 : 0}
       </span>
     `,
             allowHTML: true,
@@ -526,7 +526,7 @@
             content: `
       <span style="display: flex; align-items: center; gap: 6px;">
         <img src="/assets/icons/coins.png" width="16" height="16" style="vertical-align: middle;" />
-        ${playerStats.totalDef ? playerStats.totalDef * 10 : 0}
+        ${playerStats.baseDef ? playerStats.baseDef * 10 : 0}
       </span>
     `,
             allowHTML: true,
@@ -734,14 +734,17 @@
                       className="stat-box-value"
                       style={{ color: "#ff6b6b" }}
                     >
-                      {playerStats.totalHp}
+                      {playerStats.baseHp}
+                      {playerStats.bonusHp > 0
+                        ? ` (+${playerStats.bonusHp})`
+                        : ""}
                     </div>
                     <button
                       id="enforce-hp-btn"
                       className="btn"
                       style={{ height: 30, fontSize: 12, marginTop: 0 }}
                       onClick={() => {
-                        const cost = playerStats.totalHp * 10;
+                        const cost = playerStats.baseHp * 10;
                         if (myGold < cost) {
                           notyf.error("골드가 부족하여 강화할 수 없습니다.");
                           return;
@@ -754,7 +757,7 @@
                         setMyGold((prev) => prev - cost);
                         setPlayerStats((prev) => ({
                           ...prev,
-                          totalHp: prev.totalHp + 1,
+                          baseHp: prev.baseHp + 1,
                         }));
                       }}
                     >
@@ -767,14 +770,17 @@
                       className="stat-box-value"
                       style={{ color: "#a855f7" }}
                     >
-                      {playerStats.totalAtk}
+                      {playerStats.baseAtk}
+                      {playerStats.bonusAtk > 0
+                        ? ` (+${playerStats.bonusAtk})`
+                        : ""}
                     </div>
                     <button
                       id="enforce-atk-btn"
                       className="btn"
                       style={{ height: 30, fontSize: 12, marginTop: 0 }}
                       onClick={() => {
-                        const cost = playerStats.totalAtk * 10;
+                        const cost = playerStats.baseAtk * 10;
                         if (myGold < cost) {
                           notyf.error("골드가 부족하여 강화할 수 없습니다.");
                           return;
@@ -787,7 +793,7 @@
                         setMyGold((prev) => prev - cost);
                         setPlayerStats((prev) => ({
                           ...prev,
-                          totalAtk: prev.totalAtk + 1,
+                          baseAtk: prev.baseAtk + 1,
                         }));
                       }}
                     >
@@ -800,14 +806,17 @@
                       className="stat-box-value"
                       style={{ color: "#4ea8de" }}
                     >
-                      {playerStats.totalDef}
+                      {playerStats.baseDef}
+                      {playerStats.bonusDef > 0
+                        ? ` (+${playerStats.bonusDef})`
+                        : ""}
                     </div>
                     <button
                       id="enforce-def-btn"
                       className="btn"
                       style={{ height: 30, fontSize: 12, marginTop: 0 }}
                       onClick={() => {
-                        const cost = playerStats.totalDef * 10;
+                        const cost = playerStats.baseDef * 10;
                         if (myGold < cost) {
                           notyf.error("골드가 부족하여 강화할 수 없습니다.");
                           return;
@@ -820,7 +829,7 @@
                         setMyGold((prev) => prev - cost);
                         setPlayerStats((prev) => ({
                           ...prev,
-                          totalDef: prev.totalDef + 1,
+                          baseDef: prev.baseDef + 1,
                         }));
                       }}
                     >
@@ -980,15 +989,15 @@
                       <div>
                         <div className="item-name">
                           <span style={{ marginRight: 10 }}>{item.name}</span>
-                          {item.hp && (
+                          {item.hp > 0 && (
                             <span className="stat-badge hp">+{item.hp} HP</span>
                           )}
-                          {item.atk && (
+                          {item.atk > 0 && (
                             <span className="stat-badge atk">
                               +{item.atk} ATK
                             </span>
                           )}
-                          {item.def && (
+                          {item.def > 0 && (
                             <span className="stat-badge def">
                               +{item.def} DEF
                             </span>
@@ -1019,6 +1028,17 @@
                                     : i
                                 )
                               );
+                              setPlayerStats((prev) => ({
+                                ...prev,
+                                bonusHp:
+                                  (prev.bonusHp || 0) - (item.hp ? item.hp : 0),
+                                bonusAtk:
+                                  (prev.bonusAtk || 0) -
+                                  (item.atk ? item.atk : 0),
+                                bonusDef:
+                                  (prev.bonusDef || 0) -
+                                  (item.def ? item.def : 0),
+                              }));
                               window.parent.postMessage(
                                 {
                                   type: "ITEM_EQUIP",
@@ -1037,8 +1057,39 @@
                             <button
                               className="action-btn equip"
                               onClick={() => {
-                                handleEquip(item);
+                                // 기존 장착 아이템 찾기
+                                const prevEquipped = inventoryItems.find(
+                                  (i) => i.equipped && i.type === item.type
+                                );
+
+                                setInventoryItems((prev) =>
+                                  prev.map((i) =>
+                                    i.id === item.id
+                                      ? { ...i, equipped: true }
+                                      : i.type === item.type
+                                      ? { ...i, equipped: false }
+                                      : i
+                                  )
+                                );
+
                                 setSellModalItem(null);
+
+                                setPlayerStats((prev) => ({
+                                  ...prev,
+                                  bonusHp:
+                                    (prev.bonusHp || 0) -
+                                    (prevEquipped?.hp || 0) +
+                                    (item.hp || 0),
+                                  bonusAtk:
+                                    (prev.bonusAtk || 0) -
+                                    (prevEquipped?.atk || 0) +
+                                    (item.atk || 0),
+                                  bonusDef:
+                                    (prev.bonusDef || 0) -
+                                    (prevEquipped?.def || 0) +
+                                    (item.def || 0),
+                                }));
+
                                 window.parent.postMessage(
                                   {
                                     type: "ITEM_EQUIP",

@@ -4,7 +4,7 @@
  */
 class DataManager {
   // API 서버의 기본 URL
-  #BASE_URL = "http://192.168.0.23:3000/api"; // 실제 서버 주소에 맞게 변경해야 할 수 있습니다.
+  #BASE_URL = "http://localhost:3000/api"; // 실제 서버 주소에 맞게 변경해야 할 수 있습니다.
 
   // 로그인 후 서버로부터 받는 데이터
   #playerId = null;
@@ -57,11 +57,15 @@ class DataManager {
     this.#jwt = jwt;
   }
 
+  getJWT() {
+    return this.#jwt;
+  }
+
   // --- Auth ---
 
   async loginKakao() {
     // fetch 대신 브라우저 리다이렉트로 인증 시작
-    window.location.href = "http://192.168.0.23:3000/api/auth/kakao/login";
+    window.location.href = "http://localhost:3000/api/auth/kakao/login";
   }
 
   /**
@@ -165,7 +169,7 @@ class DataManager {
       stage: result.stage,
       survivalTime: result.survivalTime,
       goldEarned: result.goldEarned,
-      rewards: result.rewards,
+      rewards: result.rewards.map((item) => item.id),
     };
     console.log(body);
     await this.#request("/game/save", "POST", body, true); // 인증 필요

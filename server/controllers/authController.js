@@ -97,13 +97,12 @@ export const kakaoCallback = async (req, res) => {
 
     console.log(`발급된 JWT: ${token}`);
     // 5) 프론트엔드로 JWT 전달
-    res.redirect(`http://192.168.0.23:3000?jwt=${token}`);
+    res.redirect(`http://localhost:3000?jwt=${token}`);
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
 
 //카카오 로그아웃 api
 
@@ -115,4 +114,3 @@ export const kakaoLogout = (req, res) => {
 
   res.redirect(logoutUrl);
 };
-

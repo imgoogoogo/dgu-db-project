@@ -9,13 +9,11 @@ export const getRanking = async (req, res) => {
     // 1) 전체 랭킹 Top 100 조회 (정렬 기준: best_stage → gold)
     const [rows] = await pool.query(
       `SELECT 
-         char_id,
-         name AS nickName,
-         best_stage AS maxStage,
-         best_survived_time AS playTime,
-         best_played_date AS lastPlayed
-       FROM characters
-       ORDER BY best_stage DESC, gold DESC
+         nickName,
+         maxStage,
+         playTime,
+         lastPlayed
+       FROM v_ranking
        LIMIT 100`
     );
 
@@ -67,7 +65,6 @@ export const getRanking = async (req, res) => {
       myRanking,
       rankings,
     });
-
   } catch (err) {
     console.error("getRanking error:", err);
     res.status(500).json({

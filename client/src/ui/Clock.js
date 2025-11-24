@@ -47,6 +47,11 @@ export default class Clock extends Phaser.GameObjects.Container {
   }
 
   getElapsedTime() {
-    return this.gameTime;
+    const sec = this.gameTime;
+
+    const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
   }
 }

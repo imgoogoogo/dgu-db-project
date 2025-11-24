@@ -50,7 +50,8 @@ export const getGameData = async (req, res) => {
           hp,
           atk,
           def,
-          speed
+          speed,
+          chance
        FROM monsters
        ORDER BY monster_id ASC`
     );
@@ -90,7 +91,7 @@ export const getGameData = async (req, res) => {
       charInfo: finalChar,
       monsters,
       items,
-      drops
+      drops,
     });
   } catch (err) {
     console.error("getGameData error:", err);
@@ -128,29 +129,35 @@ export async function getGameConfig(req, res) {
 export const endGame = async (req, res) => {
   try {
     const charId = req.user.char_id;
-
-    const {
-      stage,
-      survivalTime, // "00:18"
-      goldEarned,
-      rewards,
-    } = req.body;
-
+    const { stage, survivalTime, goldEarned, rewards } = req.body;
     const gold = goldEarned ?? 0;
 
-    // ⭐ 캐릭터 기록 업데이트 (DB 컬럼명에 맞춤)
-    await pool.query(
-      `UPDATE characters 
-       SET 
-         best_stage = GREATEST(best_stage, ?),
-         best_survived_time = ?, 
-         gold = gold + ?,
-         best_played_date = NOW()
-       WHERE char_id = ?`,
-      [stage, survivalTime, gold, charId]
+    // 현재 최고 스테이지 조회
+    const [[char]] = await pool.query(
+      "SELECT best_stage FROM characters WHERE char_id = ?",
+      [charId]
     );
 
-    // ⭐ 아이템 보상 등록
+    // 최고 스테이지 도달 시에만 기록 업데이트
+    if (stage > char.best_stage) {
+      await pool.query(
+        `UPDATE characters 
+         SET 
+           best_stage = ?,
+           best_survived_time = ?,
+           best_played_date = NOW()
+         WHERE char_id = ?`,
+        [stage, survivalTime, charId]
+      );
+    }
+
+    // 골드 추가
+    await pool.query(
+      `UPDATE characters SET gold = gold + ? WHERE char_id = ?`,
+      [gold, charId]
+    );
+
+    // 아이템 보상 등록
     if (Array.isArray(rewards)) {
       for (const itemId of rewards) {
         await pool.query(
@@ -161,14 +168,11 @@ export const endGame = async (req, res) => {
       }
     }
 
-    // ⭐ 게임 종료 로그 기록
+    // 게임 종료 로그 기록
     await pool.query(
       `INSERT INTO user_logs (char_id, type, action, detail)
        VALUES (?, 'action', '게임 종료', ?)`,
-      [
-        charId,
-        `stage:${stage}, time:${survivalTime}, gold:${gold}`,
-      ]
+      [charId, `stage:${stage}, time:${survivalTime}, gold:${gold}`]
     );
 
     return res.json({ success: true, message: "게임 결과 저장 완료" });

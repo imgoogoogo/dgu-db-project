@@ -290,10 +290,31 @@
                     </div>
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 13, color: "#9aa3b2" }}>
-                        플레이 타임
+                        생존 시간
                       </div>
                       <div style={{ fontSize: 18, color: "#4ea8de" }}>
-                        {formatTime(rankings.myRanking.playTime)}
+                        {(function formatPlayTime(raw) {
+                          if (!raw) return "0초"; // 값이 없을 때
+
+                          // raw: "00h:08m:22s" → 숫자만 추출
+                          const [hStr, mStr, sStr] = raw
+                            .split(/h:|m:|s/)
+                            .filter(Boolean);
+                          const h = Number(hStr);
+                          const m = Number(mStr);
+                          const s = Number(sStr);
+
+                          let result = "";
+
+                          if (h > 0) result += `${h}시간 `;
+                          if (m > 0) result += `${m}분 `;
+                          if (s > 0) result += `${s}초 `;
+
+                          // 전부 0이면 "0초"
+                          if (result.trim() === "") return "0초";
+
+                          return result.trim();
+                        })(rankings.myRanking.playTime)}
                       </div>
                     </div>
                   </div>
@@ -302,10 +323,10 @@
 
               <div className="table card" style={{ padding: 0 }}>
                 <div className="row headerRow">
-                  <div style={{ marginLeft: 5 }}>Rank</div>
-                  <div style={{ paddingLeft: 30 }}>Player</div>
-                  <div style={{ textAlign: "center" }}>Max Stage</div>
-                  <div style={{ textAlign: "center" }}>Play Time</div>
+                  <div style={{ marginLeft: 5 }}>순위</div>
+                  <div style={{ paddingLeft: 30 }}>플레이어</div>
+                  <div style={{ textAlign: "center" }}>최고 스테이지</div>
+                  <div style={{ textAlign: "center" }}>생존 시간</div>
                 </div>
 
                 {filtered.map((p) => {
@@ -337,7 +358,28 @@
 
                       <div style={{ textAlign: "center" }}>
                         <span style={{ color: "#4ea8de" }}>
-                          {formatTime(p.playTime)}
+                          {(function formatPlayTime(raw) {
+                            if (!raw) return "0초"; // 값이 없을 때
+
+                            // raw: "00h:08m:22s" → 숫자만 추출
+                            const [hStr, mStr, sStr] = raw
+                              .split(/h:|m:|s/)
+                              .filter(Boolean);
+                            const h = Number(hStr);
+                            const m = Number(mStr);
+                            const s = Number(sStr);
+
+                            let result = "";
+
+                            if (h > 0) result += `${h}시간 `;
+                            if (m > 0) result += `${m}분 `;
+                            if (s > 0) result += `${s}초 `;
+
+                            // 전부 0이면 "0초"
+                            if (result.trim() === "") return "0초";
+
+                            return result.trim();
+                          })(p.playTime)}
                         </span>
                       </div>
                     </div>

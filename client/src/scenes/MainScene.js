@@ -46,7 +46,10 @@ export default class MainScene extends Phaser.Scene {
 
     // 1. JWT 파라미터가 있으면 DataManager에 저장하고, URL에서 제거
     const urlParams = new URLSearchParams(window.location.search);
-    const jwt = urlParams.get("jwt");
+    const jwt =
+      urlParams.get("jwt") ||
+      this.dataManager.getJWT() ||
+      localStorage.getItem("jwt");
     if (jwt) {
       this.dataManager.setJWT(jwt);
       localStorage.setItem("jwt", jwt); // 필요하다면 localStorage에도 저장

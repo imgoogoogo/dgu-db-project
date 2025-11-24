@@ -48,6 +48,7 @@ export default class MonsterFactory {
       spawnPoint.x,
       spawnPoint.y,
       `monster${monsterType}`,
+      monsterType,
       monsterInfo.hp,
       monsterInfo.atk,
       monsterInfo.def,

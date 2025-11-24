@@ -1,9 +1,21 @@
 export default class Monster extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, texture, hp, atk, def, speed, drop_item_id) {
+  constructor(
+    scene,
+    x,
+    y,
+    texture,
+    monsterType,
+    hp,
+    atk,
+    def,
+    speed,
+    drop_item_id
+  ) {
     super(scene, x, y, texture);
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
+    this.monsterType = monsterType;
     this.hp = hp;
     this.atk = atk;
     this.def = def;

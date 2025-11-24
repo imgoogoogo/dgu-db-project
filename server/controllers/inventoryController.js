@@ -14,42 +14,48 @@ export const getInventory = async (req, res) => {
               it.name, it.type, it.add_atk, it.add_def, it.add_hp, it.description
        FROM inventory inv
        JOIN items it ON inv.item_id = it.item_id
-       WHERE inv.char_id = ? AND inv.auctioned = 0`,
+       WHERE inv.char_id = ? AND inv.auctioned = 0
+       ORDER BY inv.equipped DESC, it.type ASC, it.item_id ASC`,
       [charId]
     );
 
-    // 기본 스탯
-    const [[base]] = await pool.query(
-      "SELECT name, hp, atk, def, gold FROM characters WHERE char_id = ?",
+    // 골드 + 기본 스탯 + 보너스 스탯을 쿼리에서 한 번에 합산
+    const [[base_stats]] = await pool.query(
+      `SELECT 
+          hp AS baseHp,
+          atk AS baseAtk,
+          def AS baseDef,
+          gold
+       FROM characters
+       WHERE char_id = ?`,
+      [charId]
+    );
+    const [[bonus_stats]] = await pool.query(
+      `SELECT 
+          IFNULL(SUM(it.add_hp), 0) AS bonusHp,
+          IFNULL(SUM(it.add_atk), 0) AS bonusAtk,
+          IFNULL(SUM(it.add_def), 0) AS bonusDef
+       FROM inventory inv
+       JOIN items it ON inv.item_id = it.item_id
+       WHERE inv.char_id = ? AND inv.equipped = 1`,
       [charId]
     );
 
-    // 보너스 스탯 계산
-    let bonusAtk = 0,
-      bonusDef = 0,
-      bonusHp = 0;
-    for (const it of items) {
-      if (it.equipped === 1) {
-        bonusAtk += it.add_atk;
-        bonusDef += it.add_def;
-        bonusHp += it.add_hp;
-      }
+    if (!base_stats) {
+      return res.status(404).json({ success: false, message: "캐릭터 없음" });
     }
-
-    // 인벤토리 조회 로그
-    await pool.query(
-      "INSERT INTO user_logs (char_id, type, action) VALUES (?, 'action', '인벤토리 조회')",
-      [charId]
-    );
 
     res.json({
       success: true,
       data: {
-        myGold: base.gold,
+        myGold: base_stats.gold,
         playerStats: {
-          totalHp: base.hp + bonusHp,
-          totalAtk: base.atk + bonusAtk,
-          totalDef: base.def + bonusDef,
+          baseHp: Number(base_stats.baseHp),
+          baseAtk: Number(base_stats.baseAtk),
+          baseDef: Number(base_stats.baseDef),
+          bonusHp: Number(bonus_stats.bonusHp),
+          bonusAtk: Number(bonus_stats.bonusAtk),
+          bonusDef: Number(bonus_stats.bonusDef),
         },
         inventoryItems: items.map((i) => ({
           id: i.inventory_id,
@@ -85,54 +91,22 @@ export const enhanceStat = async (req, res) => {
       });
     }
 
-    // 현재 스탯/골드 조회
-    const [[chr]] = await pool.query(
-      "SELECT gold, hp, atk, def FROM characters WHERE char_id = ?",
-      [charId]
-    );
+    console.log(`Enhancing stat: ${stat} for charId: ${charId}`);
 
-    if (!chr) {
-      return res.status(404).json({
-        success: false,
-        message: "캐릭터를 찾을 수 없습니다.",
-      });
-    }
+    const [row] = await pool.query(`CALL sp_enhance_stat(?, ?)`, [
+      charId,
+      stat,
+    ]);
 
-    const currentValue = chr[stat];
-    const requiredGold = currentValue * 10;
-
-    if (chr.gold < requiredGold) {
-      return res.status(400).json({
-        success: false,
-        message: `골드가 부족합니다. 필요 골드: ${requiredGold}`,
-      });
-    }
-
-    const newValue = currentValue + 1;
-
-    await pool.query(
-      `UPDATE characters 
-       SET ${stat} = ?, gold = gold - ?
-       WHERE char_id = ?`,
-      [newValue, requiredGold, charId]
-    );
-
-    // 로그 기록
-    await pool.query(
-      "INSERT INTO user_logs (char_id, type, action, detail) VALUES (?, 'action', '스탯 강화', ?)",
-      [
-        charId,
-        `${stat}: ${currentValue} → ${newValue}, usedGold: ${requiredGold}`,
-      ]
-    );
+    const result = row[0];
 
     return res.json({
       success: true,
       stat,
-      oldValue: currentValue,
-      newValue,
-      usedGold: requiredGold,
-      gold: chr.gold - requiredGold,
+      oldValue: result.currentValue,
+      newValue: result.newValue,
+      usedGold: result.usedGold,
+      gold: result.remainingGold,
     });
   } catch (err) {
     console.error("enhanceStat error:", err);
@@ -187,15 +161,6 @@ export const equipItem = async (req, res) => {
       });
     }
 
-    // 로그
-    await pool.query(
-      "INSERT INTO user_logs (char_id, type, action, detail) VALUES (?, 'action', '아이템 장착', ?)",
-      [
-        charId,
-        `inventory_id:${inventory_id}, item_id:${item.item_id}`,
-      ]
-    );
-
     res.json({ success: true });
   } catch (err) {
     console.error("equipItem error:", err);
@@ -210,57 +175,26 @@ export const sellItem = async (req, res) => {
   const charId = req.user.char_id;
   const { inventory_id, sellGold } = req.body;
 
-  const conn = await pool.getConnection();
   try {
-    await conn.beginTransaction();
+    const [row] = await pool.query("CALL sp_sell_item(?, ?, ?)", [
+      charId,
+      inventory_id,
+      sellGold,
+    ]);
 
-    // 1) 해당 인벤토리 조회
-    const [[inv]] = await conn.query(
-      `SELECT inventory_id, item_id, auctioned
-         FROM inventory
-        WHERE inventory_id = ? AND char_id = ? FOR UPDATE`,
-      [inventory_id, charId]
-    );
-
-    if (!inv) throw new Error("판매할 아이템이 없습니다.");
-    if (inv.auctioned === 1)
-      throw new Error("이미 판매 등록된 아이템입니다.");
-
-    // 2) 경매 등록  (created_at 사용)
-    await conn.query(
-      `INSERT INTO auction (inventory_id, price, seller_char_id, created_at)
-       VALUES (?, ?, ?, NOW())`,
-      [inv.inventory_id, sellGold, charId]
-    );
-
-    // 3) 인벤토리 auctioned=true
-    await conn.query(
-      `UPDATE inventory SET auctioned = 1 WHERE inventory_id = ?`,
-      [inventory_id]
-    );
-
-    await conn.commit();
-
-    // 로그
-    await pool.query(
-      "INSERT INTO user_logs (char_id, type, action, detail) VALUES (?, 'action', '아이템 판매', ?)",
-      [charId, `inventory_id:${inventory_id}, price:${sellGold}`]
-    );
+    const result = row[0];
 
     res.json({
       success: true,
       message: "경매 등록 완료!",
       auction: {
-        inventory_id: inv.inventory_id,
-        item_id: inv.item_id,
+        inventory_id: result.inventory_id,
+        item_id: result.item_id,
         price: sellGold,
       },
     });
   } catch (err) {
-    await conn.rollback();
     console.error("sellItem error:", err);
     res.status(400).json({ success: false, message: err.message });
-  } finally {
-    conn.release();
   }
 };
