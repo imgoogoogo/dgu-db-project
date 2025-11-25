@@ -152,24 +152,37 @@ export default class MainScene extends Phaser.Scene {
     });
 
     // 능력치(hp, atk, def) 강화 처리 메시지 대기
-    window.addEventListener("message", async (event) => {
+    this.handleMessage = async (event) => {
       if (event.data.type === "ENFORCE_STAT") {
         await this.dataManager.updatePlayerStats(event.data.stat);
       }
-    });
-
-    // 아이템 장착, 해제 처리 메시지 대기
-    window.addEventListener("message", async (event) => {
+      // 아이템 장착, 해제 처리 메시지 대기
       if (event.data.type === "ITEM_EQUIP") {
         await this.dataManager.updateItemEquip(event.data);
       }
-    });
-
-    // 아이템 판매 처리 메시지 대기
-    window.addEventListener("message", async (event) => {
+      // 아이템 판매 처리 메시지 대기
       if (event.data.type === "SELL_ITEM") {
         await this.dataManager.sellItem(event.data);
       }
+
+      // 거래소 아이템 구매 처리 메시지 대기
+      if (event.data.type === "AUCTION_BUY_ITEM") {
+        await this.dataManager.buyItem(event.data.auctionId);
+      }
+
+      // 거래소 아이템 판매 취소 처리 메시지 대기
+      if (event.data.type === "AUCTION_CANCEL_SALE") {
+        await this.dataManager.cancelAuction(event.data.auctionId);
+      }
+    };
+
+    // 등록 전 제거
+    window.removeEventListener("message", this.handleMessage);
+    window.addEventListener("message", this.handleMessage);
+
+    // 씬 종료 시 제거
+    this.events.on("shutdown", () => {
+      window.removeEventListener("message", this.handleMessage);
     });
 
     const rankingBtn = this.add
@@ -330,20 +343,6 @@ export default class MainScene extends Phaser.Scene {
       };
 
       window.addEventListener("message", handleReady);
-    });
-
-    // 거래소 아이템 구매 처리 메시지 대기
-    window.addEventListener("message", async (event) => {
-      if (event.data.type === "AUCTION_BUY_ITEM") {
-        await this.dataManager.buyItem(event.data.auctionId);
-      }
-    });
-
-    // 거래소 아이템 판매 취소 처리 메시지 대기
-    window.addEventListener("message", async (event) => {
-      if (event.data.type === "AUCTION_CANCEL_SALE") {
-        await this.dataManager.cancelAuction(event.data.auctionId);
-      }
     });
 
     menuContainer.add([inventoryBtn, rankingBtn, auctionBtn]);
