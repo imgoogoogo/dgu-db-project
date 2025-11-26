@@ -1,12 +1,51 @@
 // server/controllers/inventoryController.js
 import pool from "../config/db.js";
+import { verifyCharacter } from "./utils/SecurityService.js";
 
 // ----------------------------------------------------------------------
 // 1) 인벤토리 조회
 // ----------------------------------------------------------------------
 export const getInventory = async (req, res) => {
   try {
+    const userId = req.user.account_id;
     const charId = req.user.char_id;
+    console.log(`Fetching inventory for userId: ${userId}, charId: ${charId}`);
+
+    // 캐릭터 존재 여부 및 캐릭터 소유권 확인
+    const isValidCharacter = await verifyCharacter(userId, charId);
+    if (!isValidCharacter) {
+      return res
+        .status(403)
+        .json({ success: false, message: "캐릭터 검증에 실패함." });
+    }
+
+    // 골드 + 기본 스탯 + 보너스 스탯을 쿼리에서 한 번에 합산
+    const [info] = await pool.query(
+      `SELECT
+        c.gold,
+        c.hp  AS baseHp,
+        c.atk AS baseAtk,
+        c.def AS baseDef,
+        bs.bonusHp,
+        bs.bonusAtk,
+        bs.bonusDef
+      FROM characters c
+      LEFT JOIN (
+      SELECT 
+          inv2.char_id,
+          IFNULL(SUM(i2.add_hp), 0)  AS bonusHp,
+          IFNULL(SUM(i2.add_atk), 0) AS bonusAtk,
+          IFNULL(SUM(i2.add_def), 0) AS bonusDef
+      FROM inventory inv2
+      JOIN items i2 ON inv2.item_id = i2.item_id
+      WHERE inv2.equipped = 1
+      GROUP BY inv2.char_id
+      ) AS bs
+      ON bs.char_id = c.char_id
+      WHERE c.char_id = ?
+  `,
+      [charId]
+    );
 
     // 아이템 조회 (auctioned=0만)
     const [items] = await pool.query(
@@ -19,31 +58,12 @@ export const getInventory = async (req, res) => {
       [charId]
     );
 
-    // 골드 + 기본 스탯 + 보너스 스탯을 쿼리에서 한 번에 합산
-    const [[base_stats]] = await pool.query(
-      `SELECT 
-          hp AS baseHp,
-          atk AS baseAtk,
-          def AS baseDef,
-          gold
-       FROM characters
-       WHERE char_id = ?`,
-      [charId]
-    );
-    const [[bonus_stats]] = await pool.query(
-      `SELECT 
-          IFNULL(SUM(it.add_hp), 0) AS bonusHp,
-          IFNULL(SUM(it.add_atk), 0) AS bonusAtk,
-          IFNULL(SUM(it.add_def), 0) AS bonusDef
-       FROM inventory inv
-       JOIN items it ON inv.item_id = it.item_id
-       WHERE inv.char_id = ? AND inv.equipped = 1`,
-      [charId]
-    );
-
-    if (!base_stats) {
-      return res.status(404).json({ success: false, message: "캐릭터 없음" });
-    }
+    const base_stats = info[0];
+    const bonus_stats = {
+      bonusHp: base_stats.bonusHp || 0,
+      bonusAtk: base_stats.bonusAtk || 0,
+      bonusDef: base_stats.bonusDef || 0,
+    };
 
     res.json({
       success: true,

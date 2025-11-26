@@ -11,6 +11,7 @@ export default class DropManager {
       (drop) => drop.monster_id === monster.monsterType
     );
 
+    // 드롭 테이블 정보 없을 경우 처리 종료
     if (drops.length === 0) return;
 
     // 확률 기반 랜덤 드롭
