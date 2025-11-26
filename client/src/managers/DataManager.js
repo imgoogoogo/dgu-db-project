@@ -101,7 +101,8 @@ class DataManager {
   }
 
   async updateItemEquip(item) {
-    const body = { inventory_id: item.id, equipped: item.equipped };
+    let equipped = item.equipped ? 1 : 0; // 현재 상태의 반대로 설정
+    const body = { inventory_id: item.id, equipped: equipped };
     await this.#request("/inventory/equip", "PATCH", body, true); // 인증 필요
   }
 
@@ -168,6 +169,7 @@ class DataManager {
     const body = {
       stage: result.stage,
       survivalTime: result.survivalTime,
+      kills: result.kills,
       goldEarned: result.goldEarned,
       rewards: result.rewards.map((item) => item.id),
     };

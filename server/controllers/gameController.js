@@ -1,5 +1,7 @@
 // server/controllers/gameController.js
+import { json } from "express";
 import pool from "../config/db.js";
+import { verifyCharacter } from "./utils/SecurityService.js";
 
 /* ===========================================================
    1) GET /api/game
@@ -128,45 +130,26 @@ export async function getGameConfig(req, res) {
 =========================================================== */
 export const endGame = async (req, res) => {
   try {
+    const userId = req.user.account_id;
     const charId = req.user.char_id;
-    const { stage, survivalTime, goldEarned, rewards } = req.body;
+    const { stage, survivalTime, goldEarned, kills, rewards } = req.body;
     const gold = goldEarned ?? 0;
 
-    // 현재 최고 스테이지 조회
-    const [[char]] = await pool.query(
-      "SELECT best_stage FROM characters WHERE char_id = ?",
-      [charId]
-    );
-
-    // 최고 스테이지 도달 시에만 기록 업데이트
-    if (stage > char.best_stage) {
-      await pool.query(
-        `UPDATE characters 
-         SET 
-           best_stage = ?,
-           best_survived_time = ?,
-           best_played_date = NOW()
-         WHERE char_id = ?`,
-        [stage, survivalTime, charId]
-      );
+    const isValidCharacter = await verifyCharacter(userId, charId);
+    if (!isValidCharacter) {
+      return res
+        .status(403)
+        .json({ success: false, message: "캐릭터 검증에 실패함." });
     }
 
-    // 골드 추가
-    await pool.query(
-      `UPDATE characters SET gold = gold + ? WHERE char_id = ?`,
-      [gold, charId]
-    );
-
-    // 아이템 보상 등록
-    if (Array.isArray(rewards)) {
-      for (const itemId of rewards) {
-        await pool.query(
-          `INSERT INTO inventory (char_id, item_id, equipped, auctioned)
-           VALUES (?, ?, 0, 0)`,
-          [charId, itemId]
-        );
-      }
-    }
+    await pool.query(`CALL sp_save_game(?, ?, ?, ?, ?, ?)`, [
+      charId,
+      stage,
+      kills,
+      survivalTime,
+      gold,
+      JSON.stringify(rewards || []),
+    ]);
 
     // 게임 종료 로그 기록
     await pool.query(

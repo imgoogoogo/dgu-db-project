@@ -23,27 +23,16 @@ export const getInventory = async (req, res) => {
     const [info] = await pool.query(
       `SELECT
         c.gold,
-        c.hp  AS baseHp,
+        c.hp AS baseHp,
         c.atk AS baseAtk,
         c.def AS baseDef,
-        bs.bonusHp,
-        bs.bonusAtk,
-        bs.bonusDef
+        ces.bonusHp,
+        ces.bonusAtk,
+        ces.bonusDef
       FROM characters c
-      LEFT JOIN (
-      SELECT 
-          inv2.char_id,
-          IFNULL(SUM(i2.add_hp), 0)  AS bonusHp,
-          IFNULL(SUM(i2.add_atk), 0) AS bonusAtk,
-          IFNULL(SUM(i2.add_def), 0) AS bonusDef
-      FROM inventory inv2
-      JOIN items i2 ON inv2.item_id = i2.item_id
-      WHERE inv2.equipped = 1
-      GROUP BY inv2.char_id
-      ) AS bs
-      ON bs.char_id = c.char_id
-      WHERE c.char_id = ?
-  `,
+      LEFT JOIN v_character_equipped_stats ces 
+      ON ces.char_id = c.char_id
+      WHERE c.char_id = ?`,
       [charId]
     );
 
@@ -100,33 +89,25 @@ export const getInventory = async (req, res) => {
 // ----------------------------------------------------------------------
 export const enhanceStat = async (req, res) => {
   try {
+    const accountId = req.user.account_id;
     const charId = req.user.char_id;
     const { stat } = req.body;
 
-    const allowed = ["hp", "atk", "def"];
-    if (!allowed.includes(stat)) {
-      return res.status(400).json({
-        success: false,
-        message: "잘못된 스탯입니다.",
-      });
+    // 캐릭터 존재 여부 및 캐릭터 소유권 확인
+    const isValidCharacter = await verifyCharacter(accountId, charId);
+    if (!isValidCharacter) {
+      return res
+        .status(403)
+        .json({ success: false, message: "캐릭터 검증에 실패함." });
     }
-
-    console.log(`Enhancing stat: ${stat} for charId: ${charId}`);
 
     const [row] = await pool.query(`CALL sp_enhance_stat(?, ?)`, [
       charId,
       stat,
     ]);
 
-    const result = row[0];
-
     return res.json({
       success: true,
-      stat,
-      oldValue: result.currentValue,
-      newValue: result.newValue,
-      usedGold: result.usedGold,
-      gold: result.remainingGold,
     });
   } catch (err) {
     console.error("enhanceStat error:", err);
@@ -142,44 +123,23 @@ export const enhanceStat = async (req, res) => {
 // ----------------------------------------------------------------------
 export const equipItem = async (req, res) => {
   try {
+    const accountId = req.user.account_id;
     const charId = req.user.char_id;
     const { inventory_id, equipped } = req.body;
 
-    const [[item]] = await pool.query(
-      "SELECT item_id FROM inventory WHERE inventory_id=? AND char_id=?",
-      [inventory_id, charId]
-    );
-    if (!item)
-      return res.status(404).json({ success: false, message: "아이템 없음" });
-
-    if (equipped) {
-      // 같은 타입 모두 해제
-      await pool.query(
-        `UPDATE inventory inv
-         JOIN items it ON inv.item_id = it.item_id
-         SET inv.equipped = 0
-         WHERE inv.char_id=? 
-           AND it.type = (SELECT type FROM items WHERE item_id = ?)`,
-        [charId, item.item_id]
-      );
-
-      // 장착
-      await pool.query("UPDATE inventory SET equipped=1 WHERE inventory_id=?", [
-        inventory_id,
-      ]);
-    } else {
-      // 해제
-      await pool.query(
-        "UPDATE inventory SET equipped = 0 WHERE inventory_id = ? AND char_id = ?",
-        [inventory_id, charId]
-      );
-
-      return res.json({
-        success: true,
-        message: "아이템 장착 해제 완료",
-        equipped: false,
-      });
+    // 캐릭터 존재 여부 및 캐릭터 소유권 확인
+    const isValidCharacter = await verifyCharacter(accountId, charId);
+    if (!isValidCharacter) {
+      return res
+        .status(403)
+        .json({ success: false, message: "캐릭터 검증에 실패함." });
     }
+
+    const [[item]] = await pool.query("CALL sp_equip_item(?, ?, ?)", [
+      charId,
+      inventory_id,
+      equipped,
+    ]);
 
     res.json({ success: true });
   } catch (err) {
@@ -192,8 +152,17 @@ export const equipItem = async (req, res) => {
 // 5) 아이템 판매 → 경매 등록
 // ----------------------------------------------------------------------
 export const sellItem = async (req, res) => {
+  const accountId = req.user.account_id;
   const charId = req.user.char_id;
   const { inventory_id, sellGold } = req.body;
+
+  // 캐릭터 존재 여부 및 캐릭터 소유권 확인
+  const isValidCharacter = await verifyCharacter(accountId, charId);
+  if (!isValidCharacter) {
+    return res
+      .status(403)
+      .json({ success: false, message: "캐릭터 검증에 실패함." });
+  }
 
   try {
     const [row] = await pool.query("CALL sp_sell_item(?, ?, ?)", [
@@ -206,12 +175,6 @@ export const sellItem = async (req, res) => {
 
     res.json({
       success: true,
-      message: "경매 등록 완료!",
-      auction: {
-        inventory_id: result.inventory_id,
-        item_id: result.item_id,
-        price: sellGold,
-      },
     });
   } catch (err) {
     console.error("sellItem error:", err);

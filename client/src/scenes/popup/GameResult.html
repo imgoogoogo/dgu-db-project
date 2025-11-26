@@ -330,12 +330,18 @@
 
         const getTypeLabel = (type) => {
           switch (type) {
+            case "hat":
+              return "모자";
+            case "top":
+              return "상의";
+            case "bottom":
+              return "하의";
+            case "shoes":
+              return "신발";
+            case "gloves":
+              return "장갑";
             case "weapon":
               return "무기";
-            case "armor":
-              return "방어구";
-            case "accessory":
-              return "악세서리";
             default:
               return type;
           }
