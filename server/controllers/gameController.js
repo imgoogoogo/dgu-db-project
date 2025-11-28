@@ -12,37 +12,18 @@ export const getGameData = async (req, res) => {
 
     // 1) 캐릭터 기본 정보
     const [[charInfo]] = await pool.query(
-      `SELECT name, hp, atk, def FROM characters WHERE char_id = ?`,
+      `SELECT
+        CAST(c.hp + IFNULL(ces.bonusHp, 0) AS UNSIGNED) AS totalHp,
+        CAST(c.atk + IFNULL(ces.bonusAtk, 0) AS UNSIGNED) AS totalAtk,
+        CAST(c.def + IFNULL(ces.bonusDef, 0) AS UNSIGNED) AS totalDef
+      FROM characters c
+      LEFT JOIN v_character_equipped_stats ces 
+      ON ces.char_id = c.char_id
+      WHERE c.char_id = ?`,
       [charId]
     );
     if (!charInfo)
       return res.status(404).json({ success: false, message: "캐릭터 없음" });
-
-    // 2) 착용 아이템 스탯
-    const [equippedItems] = await pool.query(
-      `SELECT it.add_hp, it.add_atk, it.add_def
-       FROM inventory inv
-       JOIN items it ON inv.item_id = it.item_id
-       WHERE inv.char_id = ? AND inv.equipped = 1`,
-      [charId]
-    );
-
-    let bonusHp = 0,
-      bonusAtk = 0,
-      bonusDef = 0;
-
-    equippedItems.forEach((it) => {
-      bonusHp += it.add_hp;
-      bonusAtk += it.add_atk;
-      bonusDef += it.add_def;
-    });
-
-    const finalChar = {
-      name: charInfo.name,
-      totalHp: charInfo.hp + bonusHp,
-      totalAtk: charInfo.atk + bonusAtk,
-      totalDef: charInfo.def + bonusDef,
-    };
 
     // 3) 몬스터 목록 (DB 구조에 맞게 chance, drop_item_id 제거)
     const [monsters] = await pool.query(
@@ -72,6 +53,7 @@ export const getGameData = async (req, res) => {
        ORDER BY item_id ASC`
     );
 
+    // 5) 몬스터 드롭 아이템 목록
     const [drops] = await pool.query(
       `SELECT
         monster_id,
@@ -90,7 +72,7 @@ export const getGameData = async (req, res) => {
 
     return res.json({
       success: true,
-      charInfo: finalChar,
+      charInfo: charInfo,
       monsters,
       items,
       drops,
