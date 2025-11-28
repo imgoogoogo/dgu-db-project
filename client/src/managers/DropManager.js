@@ -26,6 +26,11 @@ export default class DropManager {
       }
     }
 
+    // 아이템을 안 주는 경우 (꽝)
+    if (!selectedDrop || !selectedDrop.item_id) {
+      return;
+    }
+
     // 아이템 정보 찾기
     const item = this.gameData.gameDataSet.items.find(
       (it) => it.id === selectedDrop.item_id

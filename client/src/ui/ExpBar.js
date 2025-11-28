@@ -14,6 +14,7 @@ export default class ExpBar extends Phaser.GameObjects.Graphics {
 
     this.setScrollFactor(0);
     scene.add.existing(this);
+    this.setDepth(100); // 다른 UI 요소들보다 위에 표시되도록 깊이 설정
 
     // 레벨 텍스트 생성
     this.levelText = scene.add

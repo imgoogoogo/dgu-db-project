@@ -5,6 +5,7 @@ export default class RemainMonster extends Phaser.GameObjects.Container {
     this.setScrollFactor(0); // UI 요소가 카메라 스크롤에 영향을 받지 않도록 설정
     this.scene.add.existing(this);
     this.draw();
+    this.setDepth(100); // 다른 UI 요소들보다 위에 표시되도록 깊이 설정
   }
 
   draw() {

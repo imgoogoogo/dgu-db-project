@@ -17,7 +17,7 @@ export const getGameData = async (req, res) => {
         CAST(c.atk + IFNULL(ces.bonusAtk, 0) AS UNSIGNED) AS totalAtk,
         CAST(c.def + IFNULL(ces.bonusDef, 0) AS UNSIGNED) AS totalDef
       FROM characters c
-      LEFT JOIN v_character_equipped_stats ces 
+      JOIN v_character_equipped_stats ces 
       ON ces.char_id = c.char_id
       WHERE c.char_id = ?`,
       [charId]

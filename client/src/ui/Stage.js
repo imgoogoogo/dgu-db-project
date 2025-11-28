@@ -10,6 +10,7 @@ export default class Stage extends Phaser.GameObjects.Text {
     });
     // ⭐️ 텍스트의 정중앙을 기준으로 위치를 잡도록 Origin을 수정하는 것이 좋습니다.
     this.setOrigin(0.5, 0.5);
+    this.setDepth(100); // 다른 UI 요소들보다 위에 표시되도록 깊이 설정
     this.setScrollFactor(0); // 카메라가 움직여도 UI가 화면에 고정되도록 설정
     scene.add.existing(this);
   }

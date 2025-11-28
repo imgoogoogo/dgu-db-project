@@ -1,7 +1,7 @@
 export default class SkillWindow extends Phaser.GameObjects.Container {
   constructor(scene, x, y, skillCounts = [0, 0, 0, 0, 0]) {
     super(scene, x, y);
-
+    this.setDepth(100); // 다른 UI 요소들보다 위에 표시되도록 깊이 설정
     this.setScrollFactor(0);
     scene.add.existing(this);
 

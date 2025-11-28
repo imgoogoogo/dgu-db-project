@@ -7,6 +7,8 @@ export default class Clock extends Phaser.GameObjects.Container {
 
     this.draw();
     this.startTimer(); // 타이머 시작 함수 호출
+
+    this.setDepth(100); // 다른 UI 요소들보다 위에 표시되도록 깊이 설정
   }
 
   draw() {

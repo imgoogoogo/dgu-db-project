@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // 1) 카카오 로그인 URL로 리다이렉트
-export const kakaoLogin = (req, res) => {
+export const kakaoLogin = async (req, res) => {
   const url =
     `https://kauth.kakao.com/oauth/authorize?response_type=code` +
     `&client_id=${process.env.KAKAO_REST_API_KEY}` +

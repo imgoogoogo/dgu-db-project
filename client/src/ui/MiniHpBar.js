@@ -16,7 +16,7 @@ export default class MiniHpBar extends Phaser.GameObjects.Graphics {
 
     // 씬의 화면 목록에 추가하여 보이게 합니다.
     scene.add.existing(this);
-
+    this.setDepth(100); // 다른 UI 요소들보다 위에 표시되도록 깊이 설정
     this.draw();
   }
 

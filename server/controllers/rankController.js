@@ -49,7 +49,7 @@ export const getRanking = async (req, res) => {
            ) AS rank,
            name AS nickName,
            best_stage AS maxStage,
-           best_survived_time AS playTime,
+           DATE_FORMAT(c.best_survived_time, '%Hh:%im:%ss') AS playTime,
            best_played_date AS lastPlayed
          FROM characters c
          WHERE char_id = ?`,
