@@ -9,7 +9,7 @@ import { verifyCharacter } from "./utils/SecurityService.js";
 export const getGameData = async (req, res) => {
   try {
     const charId = req.user.char_id;
-
+    console.log("getGameData called for charId:", charId);
     // 1) 캐릭터 기본 정보
     const [[charInfo]] = await pool.query(
       `SELECT
